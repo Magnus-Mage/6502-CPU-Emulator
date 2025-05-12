@@ -78,10 +78,25 @@ struct CPU
     return Data;
   }
 
+  Byte ReadByte(u32& Cycles, Byte Address, Mem& memory)
+  {
+    Byte Data = memory[Address];
+    Cycles--;
+    return Data;    
+  }
+
   // operation codes 
   // thsi one specifically to get address mode instruction
   static constexpr Byte
-    INS_LDA_IM = 0xA9;
+    INS_LDA_IM = 0xA9,
+    INS_LDA_ZP = 0xA5;
+ 
+  void LDASetStatus()
+  {
+    Z = (A == 0);
+    N = (A & 0b10000000) > 0;
+  }
+
 
   void Execute (u32 Cycles, Mem& memory)
   {
@@ -96,6 +111,14 @@ struct CPU
             A = Value;
             Z = (A == 0);
             N = (A & 0b10000000) > 0;
+          }
+        break;
+        case INS_LDA_ZP:
+          {
+            Byte ZeroPageAddr = 
+              FetchByte (Cycles, memory);
+            A = ReadByte(Cycles, ZeroPageAddr, memory);
+            LDASetStatus();
           }
         break;
         default:
@@ -120,8 +143,9 @@ int main ()
   cpu.Reset(mem);
   
   // start - inline a little program 
-  mem[0xFFFC] = CPU::INS_LDA_IM;
+  mem[0xFFFC] = CPU::INS_LDA_ZP;
   mem[0xFFFC] = 0x42;
+  mem[0x0042] = 0x84;
   // end - inline a little program
   cpu.Execute(2 , mem);
 

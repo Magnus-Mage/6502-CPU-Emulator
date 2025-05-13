@@ -1,0 +1,62 @@
+# === General ===
+*.log
+*.tmp
+*.bak
+*.swp
+*.swo
+*~
+
+# === Compiled Object Files ===
+*.o
+*.obj
+
+# === Compiled Binaries ===
+*.exe
+*.out
+*.app
+*.elf
+
+# === Precompiled Headers ===
+*.gch
+*.pch
+
+# === CMake / Make Build Files ===
+CMakeFiles/
+CMakeCache.txt
+Makefile
+cmake_install.cmake
+build/
+bin/
+
+# === VSCode ===
+.vscode/
+
+# === CLion / JetBrains IDEs ===
+.idea/
+cmake-build-*/
+
+# === Mac OS ===
+.DS_Store
+
+# === Windows ===
+Thumbs.db
+ehthumbs.db
+desktop.ini
+
+# === Linux ===
+*~ 
+
+# === Test Output ===
+test-output/
+
+# === Coverage / Debug / Analysis ===
+*.gcda
+*.gcno
+*.gcov
+
+# === Logs ===
+*.log
+
+# === Core Dumps ===
+core
+

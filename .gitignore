@@ -25,7 +25,7 @@ CMakeFiles/
 CMakeCache.txt
 Makefile
 cmake_install.cmake
-build/
+/build/
 bin/
 
 # === VSCode ===
@@ -60,3 +60,5 @@ test-output/
 # === Core Dumps ===
 core
 
+# === Google Test ===
+/googletest/

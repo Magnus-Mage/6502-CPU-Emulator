@@ -31,6 +31,8 @@ TEST_F(M6502Test1, RunALittleInlineProgram)
   // end - inline a little program
   cpu.Execute(8 , mem);
 
+  EXPECT_EQ(cpu.A, 0x86);
+
   printf("After execution, A register: %d\n", cpu.A);
 
 }

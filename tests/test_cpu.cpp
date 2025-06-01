@@ -32,6 +32,8 @@ TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
 
   // then:
   EXPECT_EQ(cpu.A, 0x84);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
   
   
   printf("After execution, A register: %d\n", cpu.A);
@@ -52,7 +54,8 @@ TEST_F(M6502Test1, LDAZeroPageCanLoadAValueIntoTheRegister)
 
   // then:
   EXPECT_EQ(cpu.A, 0x37);
-  
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
   
   printf("After execution, A register: %d\n", cpu.A);
 
@@ -69,11 +72,41 @@ TEST_F(M6502Test1, LDAZeroPageXCanLoadAValueIntoTheRegister)
   // end - inline a little program
   
   // when:
+  CPU CPUCopy = cpu; 
   cpu.Execute(4 , mem);
 
   // then:
   EXPECT_EQ(cpu.A, 0x37);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
+  EXPECT_EQ(cpu.C, CPUCopy.C);
+  EXPECT_EQ(cpu.B, CPUCopy.B);
+  EXPECT_EQ(cpu.D, CPUCopy.D);
+  EXPECT_EQ(cpu.I, CPUCopy.I);
+  EXPECT_EQ(cpu.V, CPUCopy.V);
+
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
+
+TEST_F(M6502Test1, LDAZeroPageCanLoadAValueIntoTheRegisterWhenItWraps)
+{
+  // given:
+  cpu.X = 0xFF;
+
+  // start - inline a little program 
+  mem[0xFFFC] = CPU::INS_LDA_ZPX;
+  mem[0xFFFD] = 0x80;
+  mem[0x007F] = 0x37;
+  // end - inline a little program
   
+  // when:
+  cpu.Execute(4 , mem);
+
+  // then:
+  EXPECT_EQ(cpu.A, 0x37);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
   
   printf("After execution, A register: %d\n", cpu.A);
 

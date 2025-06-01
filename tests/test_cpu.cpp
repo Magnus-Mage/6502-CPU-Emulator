@@ -57,3 +57,24 @@ TEST_F(M6502Test1, LDAZeroPageCanLoadAValueIntoTheRegister)
   printf("After execution, A register: %d\n", cpu.A);
 
 }
+
+TEST_F(M6502Test1, LDAZeroPageXCanLoadAValueIntoTheRegister)
+{
+  // given:
+  cpu.X = 5;
+  // start - inline a little program 
+  mem[0xFFFC] = CPU::INS_LDA_ZPX;
+  mem[0xFFFD] = 0x42;
+  mem[0x0047] = 0x37;
+  // end - inline a little program
+  
+  // when:
+  cpu.Execute(4 , mem);
+
+  // then:
+  EXPECT_EQ(cpu.A, 0x37);
+  
+  
+  printf("After execution, A register: %d\n", cpu.A);
+
+}

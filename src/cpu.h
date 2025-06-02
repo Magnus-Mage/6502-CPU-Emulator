@@ -187,7 +187,9 @@ struct CPU
         break;
       }
     }
-    return CyclesRequested - Cycles;
+
+    const s32 NumCyclesUsed = CyclesRequested - Cycles;
+    return NumCyclesUsed;
   }
 };
 

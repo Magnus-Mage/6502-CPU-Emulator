@@ -19,6 +19,18 @@ public:
   }
 };
 
+static void VerifyUnmodifiedFlagsFromLDA(
+  const CPU& cpu,
+  const CPU& CPUCopy
+)
+{ 
+  EXPECT_EQ(cpu.C, CPUCopy.C);
+  EXPECT_EQ(cpu.B, CPUCopy.B);
+  EXPECT_EQ(cpu.D, CPUCopy.D);
+  EXPECT_EQ(cpu.I, CPUCopy.I);
+  EXPECT_EQ(cpu.V, CPUCopy.V);
+}
+
 
 TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
 {
@@ -36,12 +48,7 @@ TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
   EXPECT_EQ(CyclesUsed, 2);
   EXPECT_FALSE(cpu.Z);
   EXPECT_TRUE(cpu.N);
-  EXPECT_EQ(cpu.C, CPUCopy.C);
-  EXPECT_EQ(cpu.B, CPUCopy.B);
-  EXPECT_EQ(cpu.D, CPUCopy.D);
-  EXPECT_EQ(cpu.I, CPUCopy.I);
-  EXPECT_EQ(cpu.V, CPUCopy.V);
-  
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
   
   printf("After execution, A register: %d\n", cpu.A);
 
@@ -66,11 +73,7 @@ TEST_F(M6502Test1, LDAZeroPageCanLoadAValueIntoTheRegister)
   EXPECT_EQ(CyclesUsed, 3);
   EXPECT_FALSE(cpu.Z);
   EXPECT_FALSE(cpu.N);
-  EXPECT_EQ(cpu.C, CPUCopy.C);
-  EXPECT_EQ(cpu.B, CPUCopy.B);
-  EXPECT_EQ(cpu.D, CPUCopy.D);
-  EXPECT_EQ(cpu.I, CPUCopy.I);
-  EXPECT_EQ(cpu.V, CPUCopy.V);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
   
   printf("After execution, A register: %d\n", cpu.A);
 
@@ -95,11 +98,7 @@ TEST_F(M6502Test1, LDAZeroPageXCanLoadAValueIntoTheRegister)
   EXPECT_EQ(CyclesUsed, 4);
   EXPECT_FALSE(cpu.Z);
   EXPECT_FALSE(cpu.N);
-  EXPECT_EQ(cpu.C, CPUCopy.C);
-  EXPECT_EQ(cpu.B, CPUCopy.B);
-  EXPECT_EQ(cpu.D, CPUCopy.D);
-  EXPECT_EQ(cpu.I, CPUCopy.I);
-  EXPECT_EQ(cpu.V, CPUCopy.V);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
 
   printf("After execution, A register: %d\n", cpu.A);
 
@@ -125,11 +124,7 @@ TEST_F(M6502Test1, LDAZeroPageCanLoadAValueIntoTheRegisterWhenItWraps)
   EXPECT_EQ(CyclesUsed, 4);
   EXPECT_FALSE(cpu.Z);
   EXPECT_FALSE(cpu.N);
-  EXPECT_EQ(cpu.C, CPUCopy.C);
-  EXPECT_EQ(cpu.B, CPUCopy.B);
-  EXPECT_EQ(cpu.D, CPUCopy.D);
-  EXPECT_EQ(cpu.I, CPUCopy.I);
-  EXPECT_EQ(cpu.V, CPUCopy.V);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
   
   printf("After execution, A register: %d\n", cpu.A);
 

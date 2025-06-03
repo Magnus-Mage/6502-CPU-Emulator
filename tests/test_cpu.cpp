@@ -31,6 +31,35 @@ static void VerifyUnmodifiedFlagsFromLDA(
   EXPECT_EQ(cpu.V, CPUCopy.V);
 }
 
+TEST_F( M6502Test1, TheCpuDoesNothingWhenWeExecuteZeroCycles)
+{
+  //given:
+  constexpr s32 NUM_CYCLES = 0;
+
+  //when:
+  s32 CyclesUsed = cpu.Execute(NUM_CYCLES,mem);
+
+  //then:
+  EXPECT_EQ(CyclesUsed, 0);
+}
+
+
+TEST_F(M6502Test1, CPUCanExecuteMoreCyclesThanRequired)
+{
+  // given: 
+  mem[0xFFFC] = CPU::INS_LDA_IM;
+  mem[0xFFFD] = 0x84;
+  CPU CPUCopy = cpu; 
+  constexpr s32 NUM_CYCLES = 0;
+
+  // when:
+  s32 CyclesUsed = cpu.Execute(1 , mem);
+
+  // then:
+  EXPECT_EQ(CyclesUsed, 2);
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
 
 TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
 {

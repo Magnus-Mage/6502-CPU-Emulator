@@ -118,7 +118,8 @@ struct CPU
     INS_LDA_IM  = 0xA9,
     INS_LDA_ZP  = 0xA5,
     INS_LDA_ZPX = 0xB5,
-    INS_JSR     = 0x20;
+    INS_JSR     = 0x20,
+    INS_LDA_ABS = 0xAD;
  
   void LDASetStatus()
   {
@@ -182,7 +183,7 @@ struct CPU
         break;
         default:
           {
-            printf("Instruction %d not handled", Ins); 
+            printf("Instruction %d not handled\n", Ins); 
           }
         break;
       }

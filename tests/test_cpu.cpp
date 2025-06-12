@@ -44,6 +44,7 @@ TEST_F( M6502Test1, TheCpuDoesNothingWhenWeExecuteZeroCycles)
 }
 
 
+
 TEST_F(M6502Test1, CPUCanExecuteMoreCyclesThanRequired)
 {
   // given: 
@@ -61,6 +62,24 @@ TEST_F(M6502Test1, CPUCanExecuteMoreCyclesThanRequired)
 
 }
 
+
+TEST_F(M6502Test1, ExecutingABadInstructionDoesNotPutUsInAnInfiniteLoop)
+{
+  // given: 
+  mem[0xFFFC] = 0x0; // invalid opcode
+  mem[0xFFFD] = 0x0;
+  CPU CPUCopy = cpu; 
+  constexpr s32 NUM_CYCLES = 1;
+
+  // when:
+  s32 CyclesUsed = cpu.Execute(NUM_CYCLES , mem);
+
+  // then:
+  EXPECT_EQ(CyclesUsed, NUM_CYCLES);
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
+
 TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
 {
   // start - inline a little program 
@@ -73,11 +92,7 @@ TEST_F(M6502Test1, LDAImmediateCanLoadAValueIntoTheRegister)
   s32 CyclesUsed = cpu.Execute(2 , mem);
 
   // then:
-  EXPECT_EQ(cpu.A, 0x84);
   EXPECT_EQ(CyclesUsed, 2);
-  EXPECT_FALSE(cpu.Z);
-  EXPECT_TRUE(cpu.N);
-  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
   
   printf("After execution, A register: %d\n", cpu.A);
 

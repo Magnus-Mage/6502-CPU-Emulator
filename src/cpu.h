@@ -115,11 +115,13 @@ struct CPU
   // operation codes 
   // thsi one specifically to get address mode instruction
   static constexpr Byte
-    INS_LDA_IM  = 0xA9,
-    INS_LDA_ZP  = 0xA5,
-    INS_LDA_ZPX = 0xB5,
-    INS_JSR     = 0x20,
-    INS_LDA_ABS = 0xAD;
+    INS_LDA_IM   = 0xA9,
+    INS_LDA_ZP   = 0xA5,
+    INS_LDA_ZPX  = 0xB5,
+    INS_JSR      = 0x20,
+    INS_LDA_ABS  = 0xAD,
+    INS_LDA_ABSX = 0xBD,
+    INS_LDA_ABSY = 0xB9;
  
   void LDASetStatus()
   {

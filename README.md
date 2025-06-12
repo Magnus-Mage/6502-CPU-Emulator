@@ -10,7 +10,7 @@
 [googletest](https://github.com/google/googletest)
 
 ## Commands for easier running
-> Bat file to run the build updates faster with watch functionality
+> Bat/sh file to run the build updates faster with watch functionality
 ```
 rebuild.bat -build
 rebuild.bat -run

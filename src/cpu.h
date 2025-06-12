@@ -121,7 +121,9 @@ struct CPU
     INS_JSR      = 0x20,
     INS_LDA_ABS  = 0xAD,
     INS_LDA_ABSX = 0xBD,
-    INS_LDA_ABSY = 0xB9;
+    INS_LDA_ABSY = 0xB9,
+    INS_LDA_INDX = 0xA1,
+    INS_LDA_INDY = 0xB1;
  
   void LDASetStatus()
   {

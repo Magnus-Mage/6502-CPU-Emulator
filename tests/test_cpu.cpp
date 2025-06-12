@@ -285,7 +285,7 @@ TEST_F(M6502Test1, LDAAbsoluteXCanLoadAValueIntoTheRegisterWhenItCrosesAPageBoun
 TEST_F(M6502Test1, LDAAbsoluteYCanLoadAValueIntoTheRegister)
 {
   // given:
-  cpu.X = 1;
+  cpu.Y = 1;
   mem[0xFFFC] = CPU::INS_LDA_ABSY;
   mem[0xFFFD] = 0x80;
   mem[0xFFFE] = 0x44; // 0x4480
@@ -312,7 +312,7 @@ TEST_F(M6502Test1, LDAAbsoluteYCanLoadAValueIntoTheRegister)
 TEST_F(M6502Test1, LDAAbsoluteYCanLoadAValueIntoTheRegisterWhenItCrosesAPageBoundary)
 {
   // given:
-  cpu.X = 0xFF;
+  cpu.Y = 0xFF;
   mem[0xFFFC] = CPU::INS_LDA_ABSY;
   mem[0xFFFD] = 0x02;
   mem[0xFFFE] = 0x44; // 0x4402
@@ -337,4 +337,88 @@ TEST_F(M6502Test1, LDAAbsoluteYCanLoadAValueIntoTheRegisterWhenItCrosesAPageBoun
 
 
 
+TEST_F(M6502Test1, LDAIndirectXCanLoadAValueIntoTheRegister)
+{
+  // given:
+  cpu.X = 0x04;
+  mem[0xFFFC] = CPU::INS_LDA_INDX;
+  mem[0xFFFD] = 0x02;
+  mem[0x0006] = 0x00; // 0x2 + 0x4
+  mem[0x0007] = 0x80;
+  mem[0x8000] = 0x37;
+  constexpr s32 Expected_Cycles = 6;
+  
+  
+  // when:
+  CPU CPUCopy = cpu; 
+  s32 CyclesUsed = cpu.Execute(Expected_Cycles , mem);
+
+  // then:
+  EXPECT_EQ(cpu.A, 0x37);
+  EXPECT_EQ(CyclesUsed, Expected_Cycles);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
+  
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
+
+
+
+
+TEST_F(M6502Test1, LDAIndirectYCanLoadAValueIntoTheRegister)
+{
+  // given:
+  cpu.Y = 0x04;
+  mem[0xFFFC] = CPU::INS_LDA_INDY;
+  mem[0xFFFD] = 0x02;
+  mem[0x0002] = 0x00;
+  mem[0x0003] = 0x80;
+  mem[0x8004] = 0x37; //0x8000 + 0x4
+  constexpr s32 Expected_Cycles = 5;
+  
+  
+  // when:
+  CPU CPUCopy = cpu; 
+  s32 CyclesUsed = cpu.Execute(Expected_Cycles , mem);
+
+  // then:
+  EXPECT_EQ(cpu.A, 0x37);
+  EXPECT_EQ(CyclesUsed, Expected_Cycles);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
+  
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
+
+
+TEST_F(M6502Test1, LDAIndirectYCanLoadAValueIntoTheRegisterWhenItCrossesThePageBoundary)
+{
+  // given:
+  cpu.Y = 0x04;
+  mem[0xFFFC] = CPU::INS_LDA_INDY;
+  mem[0xFFFD] = 0x02;
+  mem[0x0002] = 0x00;
+  mem[0x0003] = 0x80;
+  mem[0x8101] = 0x37; //0x8000 + 0x4
+  constexpr s32 Expected_Cycles = 6;
+  
+  
+  // when:
+  CPU CPUCopy = cpu; 
+  s32 CyclesUsed = cpu.Execute(Expected_Cycles , mem);
+
+  // then:
+  EXPECT_EQ(cpu.A, 0x37);
+  EXPECT_EQ(CyclesUsed, Expected_Cycles);
+  EXPECT_FALSE(cpu.Z);
+  EXPECT_FALSE(cpu.N);
+  VerifyUnmodifiedFlagsFromLDA(cpu, CPUCopy); 
+  
+  printf("After execution, A register: %d\n", cpu.A);
+
+}
 

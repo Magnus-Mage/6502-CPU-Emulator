@@ -49,5 +49,28 @@ target_link_libraries(
 include(GoogleTest)
 gtest_discover_tests(emulator_tests)
 
+# Add coverage support for Debug builds
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+    if(CMAKE_COMPILER_IS_GNUCXX)
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --coverage")
+        set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --coverage")
+    endif()
+endif()
 
+# Enable more warnings
+if(MSVC)
+    target_compile_options(emulator_lib PRIVATE /W4)
+else()
+    target_compile_options(emulator_lib PRIVATE -Wall -Wextra -Wpedantic)
+endif()
+
+# Add version information
+set(PROJECT_VERSION_MAJOR 1)
+set(PROJECT_VERSION_MINOR 0)
+set(PROJECT_VERSION_PATCH 0)
+configure_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/version.h.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/src/version.h"
+)
+target_include_directories(emulator_lib PRIVATE "${CMAKE_CURRENT_BINARY_DIR}/src")
 

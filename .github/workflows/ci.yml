@@ -269,7 +269,7 @@ jobs:
 
     - name: Deploy to GitHub Pages
       if: false  # Enable when you have documentation
-      uses: actions/deploy-pages@v2
+      uses: actions/deploy-pages@v4
 
   # Job 7: Notification
   notification:

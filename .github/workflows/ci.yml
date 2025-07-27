@@ -1,4 +1,10 @@
-name: 6502 Emulator CI/CD
+- name: Setup MinGW (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: msys2/setup-msys2@v2
+      with:
+        msystem: MINGW64
+        update: true
+        install: mingw-w64-x86_64-gcc mingw-w64-x86_64-cmake mingw-w64-x86_64-makename: 6502 Emulator CI/CD
 
 on:
   push:
@@ -16,18 +22,13 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
         build_type: [Debug, Release]
         include:
           - os: ubuntu-latest
             generator: "Unix Makefiles"
-            executable_ext: ""
-          - os: windows-latest
-            generator: "MinGW Makefiles"
-            executable_ext: ".exe"
           - os: macos-latest
             generator: "Unix Makefiles"
-            executable_ext: ""
     
     runs-on: ${{ matrix.os }}
     
@@ -62,37 +63,15 @@ jobs:
         cd googletest
         git checkout release-1.12.1
 
-    - name: Configure CMake (Unix)
-      if: matrix.os != 'windows-latest'
+    - name: Configure CMake
       run: |
         cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
-    - name: Configure CMake (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: |
-        cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
-
-    - name: Build (Unix)
-      if: matrix.os != 'windows-latest'
+    - name: Build
       run: |
         cmake --build build --config ${{ matrix.build_type }} --parallel 4
 
-    - name: Build (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
-      run: |
-        cmake --build build --config ${{ matrix.build_type }} --parallel 4
-
-    - name: Run Tests (Unix)
-      if: matrix.os != 'windows-latest'
-      run: |
-        cd build
-        ctest --output-on-failure --parallel 4 -C ${{ matrix.build_type }}
-
-    - name: Run Tests (Windows)
-      if: matrix.os == 'windows-latest'
-      shell: msys2 {0}
+    - name: Run Tests
       run: |
         cd build
         ctest --output-on-failure --parallel 4 -C ${{ matrix.build_type }}
@@ -112,7 +91,7 @@ jobs:
       with:
         name: emulator-${{ matrix.os }}-${{ matrix.build_type }}
         path: |
-          build/emulator_tests${{ matrix.executable_ext }}
+          build/emulator_tests
           build/libemulator_lib.*
 
   # Job 2: Code Quality Checks

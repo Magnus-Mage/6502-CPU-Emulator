@@ -16,15 +16,9 @@ jobs:
   build-and-test:
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest]
         build_type: [Debug, Release]
-        include:
-          - os: ubuntu-latest
-            generator: "Unix Makefiles"
-          - os: macos-latest
-            generator: "Unix Makefiles"
     
-    runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     
     steps:
     - name: Checkout code
@@ -32,16 +26,10 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install dependencies (Ubuntu)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Install dependencies
       run: |
         sudo apt-get update
         sudo apt-get install -y build-essential cmake
-
-    - name: Install dependencies (macOS)
-      if: matrix.os == 'macos-latest'
-      run: |
-        brew install cmake
 
     - name: Clone Google Test
       run: |
@@ -51,7 +39,7 @@ jobs:
 
     - name: Configure CMake
       run: |
-        cmake -S . -B build -G "${{ matrix.generator }}" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+        cmake -S . -B build -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
 
     - name: Build
       run: |
@@ -66,7 +54,7 @@ jobs:
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: test-results-${{ matrix.os }}-${{ matrix.build_type }}
+        name: test-results-${{ matrix.build_type }}
         path: |
           build/Testing/
           build/*test*.xml
@@ -75,7 +63,7 @@ jobs:
       if: matrix.build_type == 'Release'
       uses: actions/upload-artifact@v4
       with:
-        name: emulator-${{ matrix.os }}-${{ matrix.build_type }}
+        name: emulator-${{ matrix.build_type }}
         path: |
           build/emulator_tests
           build/libemulator_lib.*

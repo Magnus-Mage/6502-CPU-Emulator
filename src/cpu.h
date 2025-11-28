@@ -1,233 +1,177 @@
-#include <stdio.h>
-#include <stdlib.h>
-
-// Some helpful things
-
-
-using Byte = unsigned char;
-using Word = unsigned short;
-  
-using u32  = unsigned int;
-using s32  = signed int;
-// Memory logic
+#include <cstdint>
+#include <array>
+#include <optional>
+#include <expected>
+#include <format>
+#include <print>
+#include <stdexpect>
+#include <concepts>
 
 
-struct Mem
+/**
+ * Modern type alias using standard fixed-width types
+ */
+using u8  = std::uint8_t;
+using u16 = std::uint16_t;
+using u32 = std::uint32_t;
+using i32 = std::int32_t;
+
+/**
+ * @type Enum class
+ * @brief Enum class for better error handling 
+ */
+enum class EmulatorError
 {
-  static constexpr u32 MAX_MEM = 1024 * 64;
-  Byte Data[MAX_MEM];
-  
-  // Clear memory
-  void Initialise()
-  {
-    for (u32 i = 0; i < MAX_MEM; i++)
-    {
-      Data[i] = 0;
-    }
-  }
-  
-  // read 1 Byte
-  Byte operator[](u32 Address) const
-  {
-
-    // asert here Address is < MAX_MEM
-    return Data[Address];
-  }
-
-  // write 1 byte into the memory
-  Byte& operator[](u32 Address)
-  {
-    // asert here address is < MAX_MEM
-    return Data[Address];
-  }
-  
-  // Read the least significant byte off the memory
-  // Write two bytes
-  void WriteWord(Word Value, u32 Address, s32& Cycles)
-  {
-    Data[Address]     = Value & 0xFF;
-    Data[Address + 1] = (Value >> 8);
-    Cycles -= 2;
-  }
+	InvalidAddress,
+	StackOverflow,
+	InvalidOpcode,
+	StackUnderflow,
+	InsufficientCycles
 };
 
-// CPU logic
+/**
+ * @brief concept for the address types
+ */
+template<template T>
+concept AddressType = std::unsigned_integral<T> && sizeof(T) <= sizeof(u16);
 
-struct CPU
+/**
+ * @type class
+ * @brief Memory class that will define our memory subsystem
+ */
+class Memory
 {
-  Word PC;  // program counter
-  Word SP;  // stack pointer for address to the stackn  
+public:
+	static constexpr u32 MAX_MEM = 1024 * 64;
 
-  Word A, X, Y; // registers
-  
-  Byte C : 1; //status flags
-  Byte Z : 1;
-  Byte I : 1;
-  Byte D : 1;
-  Byte B : 1;
-  Byte V : 1;
-  Byte N : 1;
+	constexpr Memory() : data_{} {} 	// Zero Initialise
 
-  // Reset or restart the cpu
-  void Reset(Mem& memory)
-  {
-    PC = 0xFFFC;
-    SP = 0x00FF;
-    C = Z = I = B = V = N = D = 0;
-    A = X = Y = 0;
-    memory.Initialise();
-  }
-  
-  //Fetch the latest instruction from memory
-  Byte FetchByte(s32& Cycles, Mem& memory)
-  {
-    Byte Data = memory[PC];
-    PC++;
-    Cycles--;
-    return Data;
-  }
+	// Read byte
+	[[nodiscard]] constexpr auto read_byte (u16 address) const
+		-> std::expected<u8, EmulatorError>	
+	{
+		if (address >= MAX_MEM)
+		{
+			return std::unexpected(EmulatorError::InvalidAddress);
+		}
 
-  Word FetchWord(s32& Cycles, Mem& memory)
-  {
-    // 6502 is little endian
-    Word Data = memory[PC];
-    PC++;
+		return data_[address];
+	}
+	
+	// Write byte
+	constexpr auto write_byte (u16 address, u8 value)
+		-> std::expected<void, EmulatorError>
+	{
+		if (address >= MAX_MEM)
+		{
+			return std::unexpected(EmulatorError::InvalidAddress);
+		}
 
-    Data |= (memory[PC] << 8);
-    PC++;
-    Cycles -= 2;
+		data_[address] = value;
 
-    // if you want to handle endian
-    // you would have to swap bytes here 
-    // if (PLATFORM_BIG_ENDIAN)
-    // SwapByteInWord(Data)
+		return {};
+	}
 
-    return Data;
-  }
+	// Write word (little endian)
+	constexpr auto write_word (u16 address, u16 value)
+		-> std::expected<void, EmulatorError>
+	{
+		if (address + 1 >= MAX_MEM)
+		{
+			return std::unexpected(EmulatorError::InvalidAddress);
+		}
 
-  Byte ReadByte(s32& Cycles, Byte Address, Mem& memory)
-  {
-    Byte Data = memory[Address];
-    Cycles--;
-    return Data;    
-  }
+		data_[address]     = static_cast<u8>(value & 0xFF);
+		data_[address + 1] = static_cast<u8>(value >> 8);
+		return {};
+	}
 
-  // operation codes 
-  // thsi one specifically to get address mode instruction
-  static constexpr Byte
-    INS_LDA_IM   = 0xA9,
-    INS_LDA_ZP   = 0xA5,
-    INS_LDA_ZPX  = 0xB5,
-    INS_JSR      = 0x20,
-    INS_LDA_ABS  = 0xAD,
-    INS_LDA_ABSX = 0xBD,
-    INS_LDA_ABSY = 0xB9,
-    INS_LDA_INDX = 0xA1,
-    INS_LDA_INDY = 0xB1;
- 
-  void LDASetStatus()
-  {
-    Z = (A == 0);
-    N = (A & 0b10000000) > 0;
-  }
-  
-  /** @return the number of cycles that were used */
-  s32 Execute (s32 Cycles, Mem& memory)
-  {
-    const s32 CyclesRequested = Cycles;
-    while( Cycles > 0)
-    {
-      Byte Ins = FetchByte(Cycles, memory);
-      switch(Ins)
-      {
-        case INS_LDA_IM:
-          {
-            Byte Value = FetchByte(Cycles, memory);
-            A = Value;
-            Z = (A == 0);
-            N = (A & 0b10000000) > 0;
-          }
-        break;
-        case INS_LDA_ZP:
-          {
-            Byte ZeroPageAddr = 
-              FetchByte (Cycles, memory);
-            A = ReadByte(Cycles, ZeroPageAddr, memory);
-            LDASetStatus();
-          }
-        break;
-        case INS_LDA_ZPX:
-          {
-            Byte ZeroPageAddrX = 
-              FetchByte(Cycles, memory);
-            ZeroPageAddrX += X;
-            Cycles--;
-            A = ReadByte(Cycles, ZeroPageAddrX, memory);
-            LDASetStatus();
-          }
-        break;
-        case INS_JSR:
-          {
-            Word SubAddr = FetchWord(Cycles, memory);
-            Word ReturnAddr = PC - 1;
+	// Read word (little endian)
+	[[nodiscard]] constexpr auto read_word (u16 address)
+		-> std::expected<u16, EmulatorError>
+	{
+		if (address + 1 >= MAX_MEM)
+		{
+			return std::unexpected(EmulatorError::InvalidAddress)
+		}
 
-            // Push high byte
-            memory[0x0100 + SP] = (ReturnAddr >> 8);
-            SP--;
-            Cycles--;
+		u16 low  = data_[address];
+		u16 high = data_[address + 1];
 
-            // Push low byte
-            memory[0x0100 + SP] = ReturnAddr & 0xFF;
-            SP--;
-            Cycles--;
+		return low | (high << 8);
+	}
 
-            PC = SubAddr;
-            Cycles--;
-          }
-        break;
-        default:
-          {
-            printf("Instruction %d not handled\n", Ins); 
-          }
-        break;
-      }
-    }
+	// Clear all memory
+	constexpr void clear() noexcept
+	{
+		data_.fill(0);
+	}
 
-    const s32 NumCyclesUsed = CyclesRequested - Cycles;
-    return NumCyclesUsed;
-  }
+	// Direct access for setup 
+	constexpr operator[](u16 address) noexcept
+	{
+		return data_[address];
+	}
+
+private:
+	std::array<u8, MAX_MEM> data_;
 };
 
-/*
-int main () 
+
+/**
+ * @type struct
+ * @brief status flags with field names
+ */
+struct StatusFlags
 {
-  
-  Mem mem;
-  
-  CPU cpu;
-  
-  
+	bool carry     : 1 = false;
+	bool zero      : 1 = false;
+	bool interrupt : 1 = false;
+	bool decimal   : 1 = false;
+	bool brk       : 1 = false;
+	bool overflow  : 1 = false;
+	bool negative  : 1 = false;
 
-  cpu.Reset(mem);
-  
-  // start - inline a little program 
-  mem[0xFFFC] = CPU::INS_JSR;
-  mem[0xFFFD] = 0x42;
-  mem[0xFFFE] = 0x42;
-  mem[0x4242] = CPU::INS_LDA_IM;
-  mem[0x4243] = 0x84;
-  // end - inline a little program
-  printf("Memory at 0xFFFC: %d (JSR opcode)\n", mem[0xFFFC]);
-  printf("Memory at 0xFFFD: %d (low byte of address)\n", mem[0xFFFD]);
-  printf("Memory at 0xFFFE: %d (high byte of address)\n", mem[0xFFFE]);
-  printf("Memory at 0x4242: %d (LDA opcode)\n", mem[0x4242]);
-  printf("Memory at 0x4243: %d (immediate value)\n", mem[0x4243]);
-  
+	constexpr StatusFlags() = default;
 
-  cpu.Execute(8 , mem);
+	// Convert to byte representation
+	[[nodiscard]] constexpr u8 to_byte() const noexcept
+	{
+		return (carry 	  << 0) |
+		       (zero      << 1) |
+		       (interrupt << 1) |
+	      	       (decimal   << 1) |
+		       (brk       << 1) |
+		       (overflow  << 1) |
+		       (negative  << 1);
+	}
+};
 
-  printf("After execution, A register: %d\n", cpu.A);
+/**
+ * @type enum class
+ * @brief opcodes (type-safe enum)
+ */
+enum class Opcode : u8
+{
+	LDA_IM		= 	0xA9;		// Load Accumulator - Immediate
+	LDA_ZP		= 	0xA5;		// Load Accumulator - Zero Page
+	LDA_ZPX		= 	0xB5;		// Load Accumulator - Zero Page, X
+	LDA_ABS		= 	0xAD;		// Load Accumulator - ABSOLUTE
+	LDA_ABSX	= 	0xBD;		// Load Accumulator - ABSOLUTE, X
+	LDA_ABSY	= 	0xB9;		// Load Accumulator - ABSOLUTE, Y
+	LDA_INDX	= 	0xA1;		// Load Accumulator - INDIRECT, X
+	LDA_INDY	= 	0xB1;		// Load Accumulator - INDIRECT, Y
+	JSR		= 	0x20;		// Jump to Subroutine
+	RTS 		= 	0x60;		// Return from Subroutine
+};
 
-  return 0;
+/**
+ * @type class
+ * @brief CPU class --> Handles all the cpu core functionality
+ */
+class CPU
+{
+public:
+
+
 }
-*/

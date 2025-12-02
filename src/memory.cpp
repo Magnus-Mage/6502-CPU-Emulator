@@ -2,7 +2,7 @@
 
 namespace cpu6502
 {
-constexpr auto Memory::Memory() = data_{}
+constexpr Memory::Memory() : data_{} {}
 
 constexpr auto Memory::read_byte(u16 address) const
     -> std::expected<u8, EmulatorError>
@@ -16,7 +16,7 @@ constexpr auto Memory::read_byte(u16 address) const
 constexpr auto Memory::read_word(u16 address) const
     -> std::expected<u16, EmulatorError>
 {
-    if (address + 1 >= MAX_MEM) {
+    if (static_cast<u32>(address) + 1u >= MAX_MEM) {
         return std::unexpected(EmulatorError::InvalidAddress);
     }
     u16 low  = data_[address];
@@ -37,7 +37,7 @@ constexpr auto Memory::write_byte(u16 address, u8 value)
 constexpr auto Memory::write_word(u16 address, u16 value)
     -> std::expected<void, EmulatorError>
 {
-    if (address + 1 >= MAX_MEM) {
+    if (static_cast<u32>(address) + 1u >= MAX_MEM) {
         return std::unexpected(EmulatorError::InvalidAddress);
     }
     data_[address]     = static_cast<u8>(value & 0xFF);

@@ -121,7 +121,7 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
 		case Opcode::LDA_ABSY:
 			return execute_lda_absolute_y(cycles, memory);
-
+		/*
 		case Opcode::INDX:
 			return execute_lda_indirect_x(cycles, memory);
 
@@ -139,7 +139,7 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
 		case Opcode::JMP_IND:
 			return execute_jmp_indirect(cycles, memory);
-
+		*/
 		default:
 			std::println("Unhandled opcode: 0x{:02X}",
 					static_cast<u8>(opcode));

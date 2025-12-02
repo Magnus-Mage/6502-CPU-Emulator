@@ -43,6 +43,8 @@ constexpr const char* opcode_name (Opcode op) noexpect
         	case Opcode::LDA_ZP:   return "LDA_ZP";
         	case Opcode::LDA_ZPX:  return "LDA_ZPX";
         	case Opcode::LDA_ABS:  return "LDA_ABS";
+		case Opcode::LDA_ABSX: return "LDA_ABSX";
+		case Opcode::LDA_ABSY: return "LDA_ABSY";
         	case Opcode::JSR:      return "JSR";
         	case Opcode::RTS:      return "RTS";
         	default:               return "UNKNOWN";

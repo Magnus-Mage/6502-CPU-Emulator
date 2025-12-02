@@ -80,6 +80,12 @@ private:
     // Flag operations
     constexpr void set_zn_flags(u8 value) noexcept;
     constexpr void load_accumulator(u8 value) noexcept;
+
+    // Helper for page boundary detection
+    [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
+    {
+	    return (base_addr & 0xFF00) != (effective_addr & 0xFF00);
+    }
     
     // Instruction execution
     [[nodiscard]] constexpr auto fetch_and_execute(i32& cycles, Memory& memory) 
@@ -98,6 +104,12 @@ private:
     [[nodiscard]] constexpr auto execute_lda_absolute(i32& cycles, Memory& memory) 
         -> std::expected<void, EmulatorError>;
     
+    [[nodiscard]] constexpr auto execute_lda_absolute_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_lda_absolute_y(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
     [[nodiscard]] constexpr auto execute_jsr(i32& cycles, Memory& memory) 
         -> std::expected<void, EmulatorError>;
     

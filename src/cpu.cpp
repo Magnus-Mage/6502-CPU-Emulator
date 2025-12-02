@@ -1,4 +1,5 @@
 #include "cpu6502/cpu.hpp"
+#include "cpu6502/opcodes.hpp"
 #include <print>
 
 namespace cpu6502
@@ -84,8 +85,8 @@ constexpr auto CPU::pop_byte(i32& cycles, Memory& memory)
 
 constexpr void CPU::set_zn_flags(u8 value) noexcept
 {
-	flag_.zero 	= (value == 0);
-	flag_.negative 	= (value & 0b10000000) != 0;
+	flags_.zero 	= (value == 0);
+	flags_.negative 	= (value & 0b10000000) != 0;
 }
 
 constexpr void CPU::load_accumulator (u8 value) noexcept
@@ -98,9 +99,9 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 	-> std::expected<void, EmulatorError>
 {
 	auto ins_result = fetch_byte(cycles, memory);
-	if (!ins_result) return std:unexpected(ins_result.error());
+	if (!ins_result) return std::unexpected(ins_result.error());
 
-	const auto opcode = static_cast<Opcode>(ins_result.value);
+	const auto opcode = static_cast<Opcode>(ins_result.value());
 
 	switch(opcode)
 	{

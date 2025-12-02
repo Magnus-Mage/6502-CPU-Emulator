@@ -11,7 +11,7 @@ constexpr auto CPU::execute_lda_immediate(i32& cycles, Memory& memory)
 	if (!value) return std::unexpected(value.error());
 
 	load_accumulator(value.value());
-	return {}
+	return {} ;
 }       
 
 constexpr auto CPU::execute_lda_zero_page(i32& cycles, Memory& memory)
@@ -24,7 +24,7 @@ constexpr auto CPU::execute_lda_zero_page(i32& cycles, Memory& memory)
 	if (!value) return std::unexpected(value.error());
 
 	load_accumulator(value.value());
-	return {}
+	return {} ;
 }
 
 constexpr auto CPU::execute_lda_zero_page_x(i32& cycles, Memory& memory)
@@ -36,11 +36,11 @@ constexpr auto CPU::execute_lda_zero_page_x(i32& cycles, Memory& memory)
 	u8 final_address = address.value() + x_;
 	cycles--;
 
-	auto value = read_byte(cycles, final_address.value(), memory);
+	auto value = read_byte(cycles, final_address, memory);
 	if (!value) return std::unexpected(value.error());
 
 	load_accumulator(value.value());
-	return {}
+	return {} ;
 }
 
 constexpr auto CPU::execute_lda_absolute(i32& cycles, Memory& memory)
@@ -54,7 +54,7 @@ constexpr auto CPU::execute_lda_absolute(i32& cycles, Memory& memory)
 	
 	load_accumulator(value.value());
 
-	return {}	
+	return {} ;	
 }
 
 
@@ -69,13 +69,13 @@ constexpr auto CPU::execute_lda_absolute_x(i32& cycles, Memory& memory)
 	auto value = read_byte(cycles, final_address, memory);
 	if (!value) return std::unexpected(value.error());
 
-	if (page_crossed(address, final_address))
+	if (page_crossed(address.value(), final_address))
 	{
 		cycles--;
 	}
 
 	load_accumulator(value.value());
-	return {}
+	return {} ;
 }
 
 constexpr auto CPU::execute_lda_absolute_y(i32& cycles, Memory& memory)
@@ -89,13 +89,13 @@ constexpr auto CPU::execute_lda_absolute_y(i32& cycles, Memory& memory)
 	auto value = read_byte(cycles, final_address, memory);
 	if (!value) return std::unexpected(value.error());
 
-	if (page_crossed(address, final_address))
+	if (page_crossed(address.value(), final_address))
 	{
 		cycles--;
 	}
 
 	load_accumulator(value.value());
-	return {}
+	return {} ;
 }
 
 constexpr auto CPU::execute_jsr(i32& cycles, Memory& memory)
@@ -116,7 +116,7 @@ constexpr auto CPU::execute_jsr(i32& cycles, Memory& memory)
 
 	pc_ = sub_address.value();
 
-	return {}
+	return {} ;
 }
 
 constexpr auto CPU::execute_rts(i32& cycles, Memory& memory)
@@ -136,7 +136,7 @@ constexpr auto CPU::execute_rts(i32& cycles, Memory& memory)
 
 	cycles -= 2;		// Cycles 5-6: Increment PC and internal operations
 
-	return {}
+	return {} ;
 }
 
 } // namespace cpu6502

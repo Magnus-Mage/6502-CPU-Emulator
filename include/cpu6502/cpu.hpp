@@ -30,13 +30,13 @@ public:
    static constexpr u8 INITIAL_SP   = 0xFF;
 
    // Interrupt vectors 
-   static constexpr NMI_VECTOR = 0xFFFA;    // non-maskable interrupt
-   static constexpr IRQ_VECTOR = 0xFFFE;    // IRQ/BRK interrupt
+   static constexpr u16 NMI_VECTOR = 0xFFFA;    // non-maskable interrupt
+   static constexpr u16 IRQ_VECTOR = 0xFFFE;    // IRQ/BRK interrupt
 
-   constexpr CPU() = default();
+   constexpr CPU() = default;
 
    // Lifecycle
-   constexpr void reset(Memory memory) noexcept;
+   constexpr void reset(Memory& memory) noexcept;
 
    // Execution blocks
    [[nodiscard]] auto execute(i32 cycles, Memory& memory)

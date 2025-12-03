@@ -25,11 +25,13 @@ namespace cpu6502
 constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 	-> std::expected<void, EmulatorError>
 {
+	std::println("DEBUG: About to fetch from PC = 0x{:04X}", pc_);
+
 	auto ins_result = fetch_byte(cycles, memory);
 	if (!ins_result) return std::unexpected(ins_result.error());
 
 	const auto opcode = static_cast<Opcode>(ins_result.value());
-
+	std::println("DEBUG: Fetched opcode = 0x{:02X}",  static_cast<u8>(opcode));
 	switch(opcode)
 	{
 		case Opcode::LDA_IM:
@@ -55,13 +57,13 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
 		case Opcode::INDY:
 			return execute_lda_indirect_y(cycles, memory);
-
+		*/
 		case Opcode::JSR:
 			return execute_jsr(cycles, memory);
 
 		case Opcode::RTS:
 			return execute_rts(cycles, memory);
-
+		/*
 		case Opcode::JMP_ABS:
 			return execute_jmp_absolute(cycles, memory);
 

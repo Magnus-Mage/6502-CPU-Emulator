@@ -125,7 +125,7 @@ inline constexpr void CPU::reset(Memory& memory) noexcept
     x_  = 0;
     y_  = 0;
     flags_ = StatusFlags{};
-    memory.clear();
+    // memory.clear();
 
     // Read the start address FROM the reset vector
     auto reset_addr = memory.read_word(RESET_VECTOR);

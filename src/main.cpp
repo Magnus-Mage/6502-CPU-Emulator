@@ -9,7 +9,6 @@ int main() {
     Memory mem;
     CPU cpu;
     
-    cpu.reset(mem);
     
     // Program the reset vector to point to our program at $4242
     // The 6502 reads the reset vector at $FFFC-$FFFD to know where to start
@@ -17,6 +16,8 @@ int main() {
     mem[0xFFFC] = 0x00;  // Low byte of start address ($8000)
     mem[0xFFFD] = 0x80;  // High byte of start address ($8000)
     
+    cpu.reset(mem);
+
     // Program at $8000: JSR to subroutine at $4242
     mem[0x8000] = static_cast<u8>(Opcode::JSR);
     mem[0x8001] = 0x42;  // Low byte of subroutine address

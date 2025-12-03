@@ -118,5 +118,218 @@ private:
 
 };
 
+inline constexpr void CPU::reset(Memory& memory) noexcept
+{
+    sp_ = INITIAL_SP;
+    a_  = 0;
+    x_  = 0;
+    y_  = 0;
+    flags_ = StatusFlags{};
+    memory.clear();
+
+    // Read the start address FROM the reset vector
+    auto reset_addr = memory.read_word(RESET_VECTOR);
+    if (reset_addr) 
+    {
+        pc_ = reset_addr.value();
+    } 
+    else 
+    {
+        pc_ = 0x8000;  // Fallback
+    }
+}
+
+inline constexpr auto CPU::fetch_byte(i32& cycles, Memory& memory)
+    ->std::expected<u8, EmulatorError>
+{
+    auto result = memory.read_byte(pc_);
+    if (!result) return result;
+    pc_++;
+    cycles--;
+    return result;
+}
+
+inline constexpr auto CPU::fetch_word(i32& cycles, Memory& memory)
+    -> std::expected<u16, EmulatorError>
+{
+    auto result = memory.read_word(pc_);
+    if (!result) return result;
+    pc_ += 2;
+    cycles -= 2;
+    return result;
+}
+
+inline constexpr auto CPU::read_byte(i32& cycles, u16 address, Memory& memory)
+    -> std::expected<u8, EmulatorError>
+{
+    cycles--;
+    return memory.read_byte(address);  // Fixed: was read_word
+}
+
+inline constexpr auto CPU::push_byte(i32& cycles, u8 value, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    if (sp_ == 0) return std::unexpected(EmulatorError::StackUnderflow);
+    auto result = memory.write_byte(STACK_PAGE + sp_, value);
+    if (!result) return result;
+    sp_--;
+    cycles--;
+    return {};
+}
+
+inline constexpr auto CPU::pop_byte(i32& cycles, Memory& memory)
+    -> std::expected<u8, EmulatorError>
+{
+    if (sp_ == 0xFF) return std::unexpected(EmulatorError::StackOverflow);
+    sp_++;
+    cycles--;
+    return memory.read_byte(STACK_PAGE + sp_);
+}
+
+inline constexpr void CPU::set_zn_flags(u8 value) noexcept
+{
+    flags_.zero     = (value == 0);
+    flags_.negative = (value & 0b10000000) != 0;
+}
+
+inline constexpr void CPU::load_accumulator(u8 value) noexcept
+{
+    a_ = value;
+    set_zn_flags(a_);
+}
+
+// Instruction implementations
+
+inline constexpr auto CPU::execute_lda_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value) return std::unexpected(value.error());
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_lda_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_lda_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    u8 final_address = address.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_lda_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_lda_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    u16 final_address = address.value() + x_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;
+    }
+
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_lda_absolute_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    u16 final_address = address.value() + y_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;
+    }
+
+    load_accumulator(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_jsr(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto sub_address = fetch_word(cycles, memory);
+    if (!sub_address) return std::unexpected(sub_address.error());
+
+    const u16 return_address = pc_ - 1;
+
+    cycles--; // Cycle 4: internal cycle
+
+    auto push_high = push_byte(cycles, static_cast<u8>(return_address >> 8), memory);
+    if (!push_high) return push_high;
+
+    auto push_low = push_byte(cycles, static_cast<u8>(return_address & 0xFF), memory);
+    if (!push_low) return push_low;
+
+    pc_ = sub_address.value();
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_rts(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--; // Cycle 2: Internal cycle
+
+    auto low = pop_byte(cycles, memory);
+    if (!low) return std::unexpected(low.error());
+
+    auto high = pop_byte(cycles, memory);
+    if (!high) return std::unexpected(high.error());
+
+    const u16 return_address = low.value() | (static_cast<u16>(high.value()) << 8);
+
+    pc_ = return_address + 1;
+
+    cycles -= 2; // Cycles 5-6: Increment PC and internal operations
+
+    return {};
+}
 
 } // namespace cpu6502

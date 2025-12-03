@@ -83,9 +83,9 @@ endif()
 # ============================================================================
 
 add_library(cpu6502 STATIC
-    src/memory.cpp
+	# src/memory.cpp
     src/cpu.cpp
-    src/cpu_instructions.cpp
+        # src/cpu_instructions.cpp
 )
 
 # Set library properties

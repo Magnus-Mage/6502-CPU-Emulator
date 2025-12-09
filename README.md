@@ -12,10 +12,10 @@
 ## Commands for easier running
 > Bat/sh file to run the build updates faster with watch functionality
 ```
-rebuild.bat -build
-rebuild.bat -run
-rebuild.bat -test
-rebuild.bat -watch
+./rebuild.sh -build
+./rebuild.sh -run
+./rebuild.sh -test
+./rebuild.sh -watch
 ```
 
 ---

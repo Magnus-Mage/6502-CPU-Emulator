@@ -22,6 +22,12 @@ enum class Opcode : u8
         LDA_INDY        =       0xB1,           // Load Accumulator - INDIRECT, Y
 	
 	// LDX - Load X Register
+	LDX_IM		=	0xA2,		// Load X Register - Immediate 
+	LDX_ZP		=	0xA6,		// Load X Register - Zero Page
+	LDX_ZPY		=	0xB6,		// Load X Register - Zero Page, Y
+	LDX_ABS		=	0xAE,		// Load X Register - Absolute
+	LDX_ABSY	=	0xBE,		// Load X Register - Absolute, Y
+	
 	// LDY - Load Y Register
 	
 
@@ -39,14 +45,23 @@ constexpr const char* opcode_name (Opcode op) noexcept
 {
 	switch (op)
 	{
+		// LDA
 		case Opcode::LDA_IM:   return "LDA_IM";
         	case Opcode::LDA_ZP:   return "LDA_ZP";
         	case Opcode::LDA_ZPX:  return "LDA_ZPX";
         	case Opcode::LDA_ABS:  return "LDA_ABS";
 		case Opcode::LDA_ABSX: return "LDA_ABSX";
 		case Opcode::LDA_ABSY: return "LDA_ABSY";
+		// LDX
+		case Opcode::LDX_IM:   return "LDX_IM";
+		case Opcode::LDX_ZP:   return "LDX_ZP";
+		case Opcode::LDX_ZPY:  return "LDX_ZPY";
+		case Opcode::LDX_ABS:  return "LDX_ABS";
+		case Opcode::LDX_ABSY: return "LDX_ABSY";
+				       
         	case Opcode::JSR:      return "JSR";
         	case Opcode::RTS:      return "RTS";
+		
         	default:               return "UNKNOWN";
 	}
 }

@@ -34,6 +34,8 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 	std::println("DEBUG: Fetched opcode = 0x{:02X}",  static_cast<u8>(opcode));
 	switch(opcode)
 	{
+		// Load Accumulator
+
 		case Opcode::LDA_IM:
 			return execute_lda_immediate(cycles, memory);
 		
@@ -58,6 +60,26 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 		case Opcode::INDY:
 			return execute_lda_indirect_y(cycles, memory);
 		*/
+
+		// Load X Register
+
+		case Opcode::LDX_IM:
+			return execute_ldx_immediate(cycles, memory);
+
+		case Opcode::LDX_ZP:
+			return execute_ldx_zero_page(cycles, memory);
+		
+		case Opcode::LDX_ZPY:
+			return execute_ldx_zero_page_y(cycles, memory);
+
+		case Opcode::LDX_ABS:
+			return execute_ldx_absolute(cycles, memory);
+
+		case Opcode::LDX_ABSY:
+			return execute_ldx_absolute_y(cycles, memory);
+
+		// Control Flow Instructions
+
 		case Opcode::JSR:
 			return execute_jsr(cycles, memory);
 

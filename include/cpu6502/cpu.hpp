@@ -80,6 +80,7 @@ private:
     // Flag operations
     constexpr void set_zn_flags(u8 value) noexcept;
     constexpr void load_accumulator(u8 value) noexcept;
+    constexpr void load_x_register(u8 value) noexcept;
 
     // Helper for page boundary detection
     [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
@@ -92,6 +93,8 @@ private:
         -> std::expected<void, EmulatorError>;
     
     // Individual instruction implementations
+    // Load Accumulator
+
     [[nodiscard]] constexpr auto execute_lda_immediate(i32& cycles, Memory& memory) 
         -> std::expected<void, EmulatorError>;
     
@@ -109,13 +112,31 @@ private:
 
     [[nodiscard]] constexpr auto execute_lda_absolute_y(i32& cycles, Memory& memory)
 	    -> std::expected<void, EmulatorError>;
+    
+    // Control Flow instructions
 
     [[nodiscard]] constexpr auto execute_jsr(i32& cycles, Memory& memory) 
         -> std::expected<void, EmulatorError>;
     
     [[nodiscard]] constexpr auto execute_rts(i32& cycles, Memory& memory) 
         -> std::expected<void, EmulatorError>;
+    
+    // Load X Register
+ 
+    [[nodiscard]] constexpr auto execute_ldx_immediate(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
 
+    [[nodiscard]] constexpr auto execute_ldx_zero_page(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldx_zero_page_y(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldx_absolute(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldx_absolute_y(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -198,7 +219,14 @@ inline constexpr void CPU::load_accumulator(u8 value) noexcept
     set_zn_flags(a_);
 }
 
+inline constexpr void CPU::load_x_register(u8 value) noexcept
+{
+    x_ = value;
+    set_zn_flags(x_);
+}
+
 // Instruction implementations
+// Load Accumulator
 
 inline constexpr auto CPU::execute_lda_immediate(i32& cycles, Memory& memory)
     -> std::expected<void, EmulatorError>
@@ -291,6 +319,8 @@ inline constexpr auto CPU::execute_lda_absolute_y(i32& cycles, Memory& memory)
     return {};
 }
 
+// Control flow
+
 inline constexpr auto CPU::execute_jsr(i32& cycles, Memory& memory)
     -> std::expected<void, EmulatorError>
 {
@@ -329,6 +359,31 @@ inline constexpr auto CPU::execute_rts(i32& cycles, Memory& memory)
 
     cycles -= 2; // Cycles 5-6: Increment PC and internal operations
 
+    return {};
+}
+
+// Load X register
+
+inline constexpr auto CPU::execute_ldx_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_x_register(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_ldx_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(address.error());
+
+    load_x_register(value.value());
     return {};
 }
 

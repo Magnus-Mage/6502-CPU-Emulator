@@ -387,4 +387,54 @@ inline constexpr auto CPU::execute_ldx_zero_page(i32& cycles, Memory& memory)
     return {};
 }
 
+inline constexpr auto CPU::execute_ldx_zero_page_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto initial_address = fetch_byte(cycles, memory);
+    if (!initial_address) return std::unexpected(initial_address.error());
+
+    u8 final_address = initial_address.value() + y_;
+    cycles--;
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    load_x_register(value.value());
+    return {};  
+}
+
+inline constexpr auto CPU::execute_ldx_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_x_register(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_ldx_absolute_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    u16 final_address = address.value() + y_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;
+    }
+
+    load_x_register(value.value());
+    return {};
+}
+
 } // namespace cpu6502

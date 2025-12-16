@@ -68,6 +68,21 @@ int main() {
         std::println("✓ Page crossed ($20 -> $21) - A: 0x{:02X}, Cycles: {} (expected 5)",
                     cpu.get_a(), result.value());
     }
+
+    // Test 4: LDX Immediate (2 cycles)
+    cpu.reset(mem);
+    std::println("\n=== Test 4: LDX Immediate ===");
+    mem[0x8000] = static_cast<u8>(Opcode::LDX_IM);
+    mem[0x8001] = 0x20;
+
+    result = cpu.execute(2, mem);
+    if (result) {
+	std::println("✓ Value: $0x20 , Effective X: $0x20");
+        std::println("✓ X: 0x{:02X}, Cycles: {}",
+                    cpu.get_x(), result.value());
+    }
+
+    // Test 5: LDX Zero Page (3 Cycles)
     
     std::println("\n=== All Tests Complete ===");
     

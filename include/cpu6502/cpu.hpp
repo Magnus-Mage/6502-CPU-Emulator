@@ -81,6 +81,7 @@ private:
     constexpr void set_zn_flags(u8 value) noexcept;
     constexpr void load_accumulator(u8 value) noexcept;
     constexpr void load_x_register(u8 value) noexcept;
+    constexpr void load_y_register(u8 value) noexcept;
 
     // Helper for page boundary detection
     [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
@@ -136,6 +137,22 @@ private:
 	-> std::expected<void, EmulatorError>;
 
     [[nodiscard]] constexpr auto execute_ldx_absolute_y(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    // Load Y Register
+    [[nodiscard]] constexpr auto execute_ldy_immediate(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldy_zero_page(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldy_zero_page_x(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldy_absolute(i32& cycles, Memory& memory)
+	-> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_ldy_absolute_x(i32& cycles, Memory& memory)
 	-> std::expected<void, EmulatorError>;
 };
 
@@ -223,6 +240,12 @@ inline constexpr void CPU::load_x_register(u8 value) noexcept
 {
     x_ = value;
     set_zn_flags(x_);
+}
+
+inline constexpr void CPU::load_y_register(u8 value) noexcept
+{
+    y_ = value;
+    set_zn_flags(y_);
 }
 
 // Instruction implementations
@@ -434,6 +457,81 @@ inline constexpr auto CPU::execute_ldx_absolute_y(i32& cycles, Memory& memory)
     }
 
     load_x_register(value.value());
+    return {};
+}
+
+// Load Y register
+
+inline constexpr auto CPU::execute_ldy_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_y_register(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_ldy_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(address.error());
+
+    load_y_register(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_ldy_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto initial_address = fetch_byte(cycles, memory);
+    if (!initial_address) return std::unexpected(initial_address.error());
+
+    u8 final_address = initial_address.value() + x_;
+    cycles--;
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    load_y_register(value.value());
+    return {};  
+}
+
+inline constexpr auto CPU::execute_ldy_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    load_y_register(value.value());
+    return {};
+}
+
+inline constexpr auto CPU::execute_ldy_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    u16 final_address = address.value() + x_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;
+    }
+
+    load_y_register(value.value());
     return {};
 }
 

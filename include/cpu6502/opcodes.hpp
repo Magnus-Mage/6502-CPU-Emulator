@@ -29,7 +29,12 @@ enum class Opcode : u8
 	LDX_ABSY	=	0xBE,		// Load X Register - Absolute, Y
 	
 	// LDY - Load Y Register
-	
+	LDY_IM		=	0xA0,		// Load Y Register - Immediate 
+	LDY_ZP		=	0xA4,		// Load Y Register - Zero Page
+	LDY_ZPX		=	0xB4,		// Load Y Register - Zero Page, X
+	LDY_ABS		=	0xAC,		// Load Y Register - Absolute
+	LDY_ABSX	=	0xBC,		// Load Y Register - Absolute, X
+		
 
 	// Control Flow 
         JSR             =       0x20,           // Jump to Subroutine
@@ -58,7 +63,13 @@ constexpr const char* opcode_name (Opcode op) noexcept
 		case Opcode::LDX_ZPY:  return "LDX_ZPY";
 		case Opcode::LDX_ABS:  return "LDX_ABS";
 		case Opcode::LDX_ABSY: return "LDX_ABSY";
-				       
+		// LDY
+		case Opcode::LDY_IM:   return "LDY_IM";
+		case Opcode::LDY_ZP:   return "LDY_ZP";
+		case Opcode::LDY_ZPX:  return "LDY_ZPX";
+		case Opcode::LDY_ABS:  return "LDY_ABS";
+		case Opcode::LDY_ABSX: return "LDY_ABSX";
+		
         	case Opcode::JSR:      return "JSR";
         	case Opcode::RTS:      return "RTS";
 		

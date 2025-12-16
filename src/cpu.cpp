@@ -78,6 +78,24 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 		case Opcode::LDX_ABSY:
 			return execute_ldx_absolute_y(cycles, memory);
 
+		// Load Y Register
+
+
+		case Opcode::LDY_IM:
+			return execute_ldy_immediate(cycles, memory);
+
+		case Opcode::LDY_ZP:
+			return execute_ldy_zero_page(cycles, memory);
+		
+		case Opcode::LDY_ZPX:
+			return execute_ldy_zero_page_x(cycles, memory);
+
+		case Opcode::LDY_ABS:
+			return execute_ldy_absolute(cycles, memory);
+
+		case Opcode::LDY_ABSX:
+			return execute_ldy_absolute_x(cycles, memory);
+
 		// Control Flow Instructions
 
 		case Opcode::JSR:

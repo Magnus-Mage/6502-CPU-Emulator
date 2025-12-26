@@ -95,6 +95,33 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
 		case Opcode::LDY_ABSX:
 			return execute_ldy_absolute_x(cycles, memory);
+		
+		// Add With Carry
+
+		case Opcode::ADC_IM:
+			return execute_adc_immediate(cycles, memory);
+		
+		case Opcode::ADC_ZP:
+			return execute_adc_zero_page(cycles, memory);
+
+		case Opcode::ADC_ZPX:
+			return execute_adc_zero_page_x(cycles, memory);
+
+		case Opcode::ADC_ABS:
+			return execute_adc_absolute(cycles, memory);
+
+		case Opcode::ADC_ABSX:
+			return execute_adc_absolute_x(cycles, memory);
+
+		case Opcode::ADC_ABSY:
+			return execute_adc_absolute_y(cycles, memory);
+		
+		case Opcode::ADC_INDX:
+			return execute_adc_indirect_x(cycles, memory);
+
+		case Opcode::ADC_INDY:
+			return execute_adc_indirect_y(cycles, memory);
+		
 
 		// Control Flow Instructions
 

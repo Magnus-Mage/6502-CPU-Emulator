@@ -34,7 +34,16 @@ enum class Opcode : u8
 	LDY_ZPX		=	0xB4,		// Load Y Register - Zero Page, X
 	LDY_ABS		=	0xAC,		// Load Y Register - Absolute
 	LDY_ABSX	=	0xBC,		// Load Y Register - Absolute, X
-		
+	
+	// ADC - Add With Carry
+	ADC_IM		=	0x69,		// Add With Carry - Immediate
+	ADC_ZP 		= 	0x65,		// Add With Carry - Zero Page
+	ADC_ZPX		=	0x75,		// Add With Carry - Zero Page, X
+	ADC_ABS		=	0x6D,		// Add With Carry - Absolute
+	ADC_ABSX	=	0x7D,		// Add With Carry - Absolute, X
+	ADC_ABSY	=	0x79,		// Add With Carry - Absolute, Y
+	ADC_INDX	=	0x61,		// Add With Carry - Indirect, X
+	ADC_IDNY	=	0x71,		// Add With Carry - Indirect, Y			
 
 	// Control Flow 
         JSR             =       0x20,           // Jump to Subroutine
@@ -68,8 +77,17 @@ constexpr const char* opcode_name (Opcode op) noexcept
 		case Opcode::LDY_ZP:   return "LDY_ZP";
 		case Opcode::LDY_ZPX:  return "LDY_ZPX";
 		case Opcode::LDY_ABS:  return "LDY_ABS";
-		case Opcode::LDY_ABSX: return "LDY_ABSX";
-		
+		case Opcode::LDY_ABSX: return "LDY_ABSX";		
+		// ADC
+		case Opcode::ADC_IM:   return "ADC_IM";
+        	case Opcode::ADC_ZP:   return "ADC_ZP";
+        	case Opcode::ADC_ZPX:  return "ADC_ZPX";
+        	case Opcode::ADC_ABS:  return "ADC_ABS";
+		case Opcode::ADC_ABSX: return "ADC_ABSX";
+		case Opcode::ADC_ABSY: return "ADC_ABSY";
+		case Opcode::ADC_INDX: return "ADC_INDX";
+		case Opcode::ADC_INDY: return "ADC_INDY";
+
         	case Opcode::JSR:      return "JSR";
         	case Opcode::RTS:      return "RTS";
 		

@@ -82,6 +82,7 @@ private:
     constexpr void load_accumulator(u8 value) noexcept;
     constexpr void load_x_register(u8 value) noexcept;
     constexpr void load_y_register(u8 value) noexcept;
+    constexpr void add_with_carry(u8 value) noexcept;
 
     // Helper for page boundary detection
     [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
@@ -155,6 +156,32 @@ private:
     [[nodiscard]] constexpr auto execute_ldy_absolute_x(i32& cycles, Memory& memory)
 	-> std::expected<void, EmulatorError>;
 };
+
+    // ADD With Carry
+
+    [[nodiscard]] constexpr auto execute_adc_immediate(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_adc_zero_page(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_adc_zero_page_x(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_adc_absolute(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_adc_absolute_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_adc_absolute_y(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_adc_indirect_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>
+	    ;
+    [[nodiscard]] constexpr auto execute_adc_indirect_y(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
 {

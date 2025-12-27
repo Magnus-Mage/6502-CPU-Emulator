@@ -12,14 +12,14 @@ namespace cpu6502
 enum class Opcode : u8
 {
 	// LDA - Load Accumlator
-        LDA_IM          =       0xA9,           // Load Accumulator - Immediate
-        LDA_ZP          =       0xA5,           // Load Accumulator - Zero Page
-        LDA_ZPX         =       0xB5,           // Load Accumulator - Zero Page, X
-        LDA_ABS         =       0xAD,           // Load Accumulator - ABSOLUTE
-        LDA_ABSX        =       0xBD,           // Load Accumulator - ABSOLUTE, X
-        LDA_ABSY        =       0xB9,           // Load Accumulator - ABSOLUTE, Y
-        LDA_INDX        =       0xA1,           // Load Accumulator - INDIRECT, X
-        LDA_INDY        =       0xB1,           // Load Accumulator - INDIRECT, Y
+    LDA_IM      =       0xA9,           // Load Accumulator - Immediate
+    LDA_ZP      =       0xA5,           // Load Accumulator - Zero Page
+    LDA_ZPX     =       0xB5,           // Load Accumulator - Zero Page, X
+    LDA_ABS     =       0xAD,           // Load Accumulator - ABSOLUTE
+    LDA_ABSX    =       0xBD,           // Load Accumulator - ABSOLUTE, X
+    LDA_ABSY    =       0xB9,           // Load Accumulator - ABSOLUTE, Y
+    LDA_INDX    =       0xA1,           // Load Accumulator - INDIRECT, X
+    LDA_INDY    =       0xB1,           // Load Accumulator - INDIRECT, Y
 	
 	// LDX - Load X Register
 	LDX_IM		=	0xA2,		// Load X Register - Immediate 
@@ -45,9 +45,19 @@ enum class Opcode : u8
 	ADC_INDX	=	0x61,		// Add With Carry - Indirect, X
 	ADC_INDY	=	0x71,		// Add With Carry - Indirect, Y			
 
-	// Control Flow 
-        JSR             =       0x20,           // Jump to Subroutine
-        RTS             =       0x60,           // Return from Subroutine
+	// AND - Logical AND
+	AND_IM		=	0x29,		// Logical AND - Immediate
+	AND_ZP 		= 	0x25,		// Logical AND - Zero Page
+	AND_ZPX		=	0x35,		// Logical AND - Zero Page, X
+	AND_ABS		=	0x2D,		// Logical AND - Absolute
+	AND_ABSX	=	0x3D,		// Logical AND - Absolute, X
+	AND_ABSY	=	0x39,		// Logical AND - Absolute, Y
+	AND_INDX	=	0x21,		// Logical AND - Indirect, X
+	AND_INDY	=	0x31,		// Logical AND - Indirect, Y			
+	
+    // Control Flow 
+    JSR         =   0x20,       // Jump to Subroutine
+    RTS         =   0x60,       // Return from Subroutine
 	JMP_ABS		= 	0x4c,		// Jump to address with abolute addressing
 	JMP_IND		=	0x6c,		// Jump to address with indirect addressing
 };
@@ -61,9 +71,9 @@ constexpr const char* opcode_name (Opcode op) noexcept
 	{
 		// LDA
 		case Opcode::LDA_IM:   return "LDA_IM";
-        	case Opcode::LDA_ZP:   return "LDA_ZP";
-        	case Opcode::LDA_ZPX:  return "LDA_ZPX";
-        	case Opcode::LDA_ABS:  return "LDA_ABS";
+        case Opcode::LDA_ZP:   return "LDA_ZP";
+        case Opcode::LDA_ZPX:  return "LDA_ZPX";
+        case Opcode::LDA_ABS:  return "LDA_ABS";
 		case Opcode::LDA_ABSX: return "LDA_ABSX";
 		case Opcode::LDA_ABSY: return "LDA_ABSY";
 		// LDX
@@ -80,18 +90,27 @@ constexpr const char* opcode_name (Opcode op) noexcept
 		case Opcode::LDY_ABSX: return "LDY_ABSX";		
 		// ADC
 		case Opcode::ADC_IM:   return "ADC_IM";
-        	case Opcode::ADC_ZP:   return "ADC_ZP";
-        	case Opcode::ADC_ZPX:  return "ADC_ZPX";
-        	case Opcode::ADC_ABS:  return "ADC_ABS";
+        case Opcode::ADC_ZP:   return "ADC_ZP";
+        case Opcode::ADC_ZPX:  return "ADC_ZPX";
+        case Opcode::ADC_ABS:  return "ADC_ABS";
 		case Opcode::ADC_ABSX: return "ADC_ABSX";
 		case Opcode::ADC_ABSY: return "ADC_ABSY";
 		case Opcode::ADC_INDX: return "ADC_INDX";
 		case Opcode::ADC_INDY: return "ADC_INDY";
-
-        	case Opcode::JSR:      return "JSR";
-        	case Opcode::RTS:      return "RTS";
+		// AND
+		case Opcode::AND_IM:   return "AND_IM";
+        case Opcode::AND_ZP:   return "AND_ZP";
+        case Opcode::AND_ZPX:  return "AND_ZPX";
+        case Opcode::AND_ABS:  return "AND_ABS";
+		case Opcode::AND_ABSX: return "AND_ABSX";
+		case Opcode::AND_ABSY: return "AND_ABSY";
+		case Opcode::AND_INDX: return "AND_INDX";
+		case Opcode::AND_INDY: return "AND_INDY";
+        //Control FLow
+        case Opcode::JSR:      return "JSR";
+        case Opcode::RTS:      return "RTS";
 		
-        	default:               return "UNKNOWN";
+        default:               return "UNKNOWN";
 	}
 }
 

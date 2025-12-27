@@ -91,6 +91,7 @@ private:
     constexpr void load_x_register(u8 value)  noexcept;
     constexpr void load_y_register(u8 value)  noexcept;
     constexpr void add_with_carry(u8 value)   noexcept;
+    constexpr void logical_and(u8 value)      noexcept;
 
     // Helper for page boundary detection
     [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
@@ -185,9 +186,35 @@ private:
 	    -> std::expected<void, EmulatorError>;
     
     [[nodiscard]] constexpr auto execute_adc_indirect_x(i32& cycles, Memory& memory)
-	    -> std::expected<void, EmulatorError>
-	    ;
+	    -> std::expected<void, EmulatorError>;
+
     [[nodiscard]] constexpr auto execute_adc_indirect_y(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
+    // LOGICAL AND
+
+    [[nodiscard]] constexpr auto execute_and_immediate(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_and_zero_page(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_and_zero_page_x(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_and_absolute(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_and_absolute_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_and_absolute_y(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_and_indirect_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_and_indirect_y(i32& cycles, Memory& memory)
 	    -> std::expected<void, EmulatorError>;
 };
 
@@ -301,6 +328,12 @@ inline constexpr void CPU::add_with_carry(u8 value) noexcept
     flags_.zero     = (a_ == 0);
     flags_.negative = (a_ & 0x80) != 0;
     flags_.overflow = overflow;
+}
+
+inline constexpr void CPU::logical_and(u8 value) noexcept
+{
+    a_ &= value;
+    set_zn_flags(a_);
 }
 
 // Instruction implementations
@@ -734,4 +767,147 @@ inline constexpr auto CPU::execute_adc_indirect_y(i32& cycles, Memory& memory)
     return {};
 }
 
+// AND Immediate Mode
+inline constexpr auto CPU::execute_and_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Zero Page
+inline constexpr auto CPU::execute_and_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Zero Page, X
+inline constexpr auto CPU::execute_and_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    u8 final_address = address.value() + x_;
+    cycles--;  // Extra cycle for index addition
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Absolute
+inline constexpr auto CPU::execute_and_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Absolute, X
+inline constexpr auto CPU::execute_and_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    u16 final_address = address.value() + x_;
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;  // Extra cycle for page boundary crossing
+    }
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Absolute, Y
+inline constexpr auto CPU::execute_and_absolute_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    u16 final_address = address.value() + y_;
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    if (page_crossed(address.value(), final_address))
+    {
+        cycles--;  // Extra cycle for page boundary crossing
+    }
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Indirect, X
+inline constexpr auto CPU::execute_and_indirect_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr) return std::unexpected(zero_page_addr.error());
+    
+    u8 indexed_addr = zero_page_addr.value() + x_;
+    cycles--;  // Extra cycle for index addition
+    
+    auto effective_addr = memory.read_word(indexed_addr);
+    if (!effective_addr) return std::unexpected(effective_addr.error());
+    cycles -= 2;  // Two cycles to read word from zero page
+    
+    auto value = read_byte(cycles, effective_addr.value(), memory);
+    if (!value) return std::unexpected(value.error());
+    
+    logical_and(value.value());
+    return {};
+}
+
+// AND Indirect, Y
+inline constexpr auto CPU::execute_and_indirect_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr) return std::unexpected(zero_page_addr.error());
+    
+    auto base_addr = memory.read_word(zero_page_addr.value());
+    if (!base_addr) return std::unexpected(base_addr.error());
+    cycles -= 2;  // Two cycles to read word from zero page
+    
+    u16 final_address = base_addr.value() + y_;
+    
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    if (page_crossed(base_addr.value(), final_address))
+    {
+        cycles--;  // Extra cycle for page boundary crossing
+    }
+    
+    logical_and(value.value());
+    return {};
+}
 } // namespace cpu6502

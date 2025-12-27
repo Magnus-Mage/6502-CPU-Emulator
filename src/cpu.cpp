@@ -122,6 +122,32 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 		case Opcode::ADC_INDY:
 			return execute_adc_indirect_y(cycles, memory);
 		
+        // Logical AND
+
+		case Opcode::AND_IM:
+			return execute_and_immediate(cycles, memory);
+		
+		case Opcode::AND_ZP:
+			return execute_and_zero_page(cycles, memory);
+
+		case Opcode::AND_ZPX:
+			return execute_and_zero_page_x(cycles, memory);
+
+		case Opcode::AND_ABS:
+			return execute_and_absolute(cycles, memory);
+
+		case Opcode::AND_ABSX:
+			return execute_and_absolute_x(cycles, memory);
+
+		case Opcode::AND_ABSY:
+			return execute_and_absolute_y(cycles, memory);
+		
+		case Opcode::AND_INDX:
+			return execute_and_indirect_x(cycles, memory);
+
+		case Opcode::AND_INDY:
+			return execute_and_indirect_y(cycles, memory);
+		
 
 		// Control Flow Instructions
 

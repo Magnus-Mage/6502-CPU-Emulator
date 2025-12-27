@@ -9,13 +9,9 @@
 
 [googletest](https://github.com/google/googletest)
 
-## Commands for easier running
-> Bat/sh file to run the build updates faster with watch functionality
+## Instructions added from 6502:
 ```
-./rebuild.sh -build
-./rebuild.sh -run
-./rebuild.sh -test
-./rebuild.sh -watch
+ADC, AND, LDA, LDX, LDY, JSR, RTS
 ```
 
 ---

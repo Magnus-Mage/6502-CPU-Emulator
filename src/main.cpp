@@ -82,7 +82,66 @@ int main() {
                     cpu.get_x(), result.value());
     }
 
-    // Test 5: LDX Zero Page (3 Cycles)
+    // Test ADC Basic Addition
+    cpu.reset(mem);
+    std::println("\n=== Test: ADC Basic Addition ===");
+    cpu.set_flag_c(false); 
+    mem[0x8000] = static_cast<u8>(Opcode::LDA_IM);
+    mem[0x8001] = 0x05;
+    mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
+    mem[0x8003] = 0x03;
+
+    result = cpu.execute(4, mem);
+    if (result) {
+        std::println("✓ 0x05 + 0x03 = 0x{:02X} (expected 0x08)", cpu.get_a());
+        std::println("✓ Carry: {}, Zero: {}, Negative: {}, Overflow: {}",
+                    cpu.get_flags().carry, cpu.get_flags().zero,
+                    cpu.get_flags().negative, cpu.get_flags().overflow);
+    }
+
+    // Test ADC with Carry Flag Set
+    cpu.reset(mem);
+    std::println("\n=== Test: ADC with Carry Set ===");
+    mem[0x8000] = static_cast<u8>(Opcode::LDA_IM);
+    mem[0x8001] = 0x05;
+    mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
+    mem[0x8003] = 0x03;
+    // cpu.execute(2, mem);  // Load 0x05 into A
+    cpu.set_flag_c(true);  // Set carry flag
+
+    result = cpu.execute(4, mem);
+    if (result) {
+        std::println("✓ 0x05 + 0x03 + 1(carry) = 0x{:02X} (expected 0x09)", cpu.get_a());
+    }
+
+    // Test ADC Overflow (Positive + Positive = Negative)
+    cpu.reset(mem);
+    std::println("\n=== Test: ADC Signed Overflow ===");
+    mem[0x8000] = static_cast<u8>(Opcode::LDA_IM);
+    mem[0x8001] = 0x50;  // +80 in signed
+    mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
+    mem[0x8003] = 0x50;  // +80 in signed
+
+    result = cpu.execute(4, mem);
+    if (result) {
+        std::println("✓ 0x50 + 0x50 = 0x{:02X}", cpu.get_a());
+        std::println("✓ Overflow flag: {} (expected true)", cpu.get_flags().overflow);
+    }
+
+    // Test ADC Carry Generation
+    cpu.reset(mem);
+    std::println("\n=== Test: ADC Carry Generation ===");
+    mem[0x8000] = static_cast<u8>(Opcode::LDA_IM);
+    mem[0x8001] = 0xFF;
+    mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
+    mem[0x8003] = 0x01;
+
+    result = cpu.execute(4, mem);
+    if (result) {
+        std::println("✓ 0xFF + 0x01 = 0x{:02X} (expected 0x00)", cpu.get_a());
+        std::println("✓ Carry: {}, Zero: {}", 
+                    cpu.get_flags().carry, cpu.get_flags().zero);
+    }
     
     std::println("\n=== All Tests Complete ===");
     

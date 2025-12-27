@@ -43,7 +43,7 @@ enum class Opcode : u8
 	ADC_ABSX	=	0x7D,		// Add With Carry - Absolute, X
 	ADC_ABSY	=	0x79,		// Add With Carry - Absolute, Y
 	ADC_INDX	=	0x61,		// Add With Carry - Indirect, X
-	ADC_IDNY	=	0x71,		// Add With Carry - Indirect, Y			
+	ADC_INDY	=	0x71,		// Add With Carry - Indirect, Y			
 
 	// Control Flow 
         JSR             =       0x20,           // Jump to Subroutine

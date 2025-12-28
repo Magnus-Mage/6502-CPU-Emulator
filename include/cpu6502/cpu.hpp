@@ -5,7 +5,6 @@
 #include "error.hpp"
 #include "status_flags.hpp"
 #include <expected>
-#include <string>
 
 namespace cpu6502 
 {
@@ -86,12 +85,13 @@ private:
         -> std::expected<u8, EmulatorError>;
     
     // Flag operations
-    constexpr void set_zn_flags(u8 value)     noexcept;
-    constexpr void load_accumulator(u8 value) noexcept;
-    constexpr void load_x_register(u8 value)  noexcept;
-    constexpr void load_y_register(u8 value)  noexcept;
-    constexpr void add_with_carry(u8 value)   noexcept;
-    constexpr void logical_and(u8 value)      noexcept;
+    constexpr void set_zn_flags(u8 value)          noexcept;
+    constexpr void load_accumulator(u8 value)      noexcept;
+    constexpr void load_x_register(u8 value)       noexcept;
+    constexpr void load_y_register(u8 value)       noexcept;
+    constexpr void add_with_carry(u8 value)        noexcept;
+    constexpr void logical_and(u8 value)           noexcept;
+    constexpr void arthmetic_shift_left(u8& value) noexcept;
 
     // Helper for page boundary detection
     [[nodiscard]] static constexpr auto page_crossed(u16 base_addr, u16 effective_addr) noexcept
@@ -216,6 +216,23 @@ private:
 
     [[nodiscard]] constexpr auto execute_and_indirect_y(i32& cycles, Memory& memory)
 	    -> std::expected<void, EmulatorError>;
+
+    // Arthmetic Shift Left
+
+    [[nodiscard]] constexpr auto execute_shift_left_accumulator(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_shift_left_zero_page(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_shift_left_zero_page_x(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_shift_left_absolute(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>;
+    
+    [[nodiscard]] constexpr auto execute_shift_left_absolute_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -334,6 +351,13 @@ inline constexpr void CPU::logical_and(u8 value) noexcept
 {
     a_ &= value;
     set_zn_flags(a_);
+}
+
+inline constexpr void CPU::arthmetic_shift_left(u8& value) noexcept
+{
+    flags_.carry = (value & 0x80) != 0;
+    value <<= 1;
+    set_zn_flags(value);
 }
 
 // Instruction implementations
@@ -464,8 +488,8 @@ inline constexpr auto CPU::execute_rts(i32& cycles, Memory& memory)
     auto high = pop_byte(cycles, memory);
     if (!high) return std::unexpected(high.error());
 
-    const u16 return_address = low.value() | (static_cast<u16>(high.value()) << 8);
-
+    const u16 return_address = static_cast<u16>(low.value()) | 
+                               (static_cast<u16>(high.value()) << 8);
     pc_ = return_address + 1;
 
     cycles -= 2; // Cycles 5-6: Increment PC and internal operations
@@ -910,4 +934,97 @@ inline constexpr auto CPU::execute_and_indirect_y(i32& cycles, Memory& memory)
     logical_and(value.value());
     return {};
 }
+
+// Arthmetic Shift Left
+inline constexpr auto CPU::execute_shift_left_accumulator(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    arthmetic_shift_left(a_);   // Pass Accumulator by reference
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_left_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    arthmetic_shift_left(temp);
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result) return write_result;
+    cycles--;
+
+    return {};
+}
+
+
+inline constexpr auto CPU::execute_shift_left_zero_page_x(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr) return std::unexpected(zero_page_addr.error());
+
+    u8 final_addr = zero_page_addr.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_addr, memory);
+    if (!value) return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    arthmetic_shift_left(temp);
+
+    auto write_result = memory.write_byte(final_addr, temp);
+    if (!write_result) return write_result;
+    cycles--;
+
+    return {};
+}
+    
+inline constexpr auto CPU::execute_shift_left_absolute(i32& cycles, Memory& memory) 
+        -> std::expected<void, EmulatorError>
+{
+        
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value) return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    arthmetic_shift_left(temp);
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result) return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_left_absolute_x(i32& cycles, Memory& memory)
+	    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+    
+    u16 final_address = address.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value) return std::unexpected(value.error());
+    
+    u8 temp = value.value();
+    arthmetic_shift_left(temp);
+
+    auto write_result = memory.write_byte(final_address, temp);
+    if (!write_result) return write_result;
+    cycles--;
+    return {};
+}
+
 } // namespace cpu6502

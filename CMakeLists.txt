@@ -135,6 +135,137 @@ target_link_libraries(emulator_demo
 )
 
 # ============================================================================
+# Google Test Setup
+# ============================================================================
+
+# Enable testing
+enable_testing()
+
+# Fetch Google Test
+include(FetchContent)
+FetchContent_Declare(
+    googletest
+    GIT_REPOSITORY https://github.com/google/googletest.git
+    GIT_TAG        v1.14.0  # Latest stable version
+)
+
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+# Make Google Test available
+FetchContent_MakeAvailable(googletest)
+
+# ============================================================================
+# Test Executables
+# ============================================================================
+
+# Test for LDA instructions
+add_executable(test_lda
+    tests/test_lda.cpp
+)
+
+target_link_libraries(test_lda
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# Test for ADC instructions
+add_executable(test_adc
+    tests/test_adc.cpp
+)
+
+target_link_libraries(test_adc
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# Test for AND instructions
+add_executable(test_and
+    tests/test_and.cpp
+)
+
+target_link_libraries(test_and
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# Test for ASL instructions
+add_executable(test_asl
+    tests/test_asl.cpp
+)
+
+target_link_libraries(test_asl
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# Test for LDX/LDY instructions
+add_executable(test_ldxy
+    tests/test_ldxy.cpp
+)
+
+target_link_libraries(test_ldxy
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# Test for JSR/RTS instructions
+add_executable(test_control_flow
+    tests/test_control_flow.cpp
+)
+
+target_link_libraries(test_control_flow
+    PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+# ============================================================================
+# Register Tests with CTest
+# ============================================================================
+
+include(GoogleTest)
+
+gtest_discover_tests(test_lda)
+gtest_discover_tests(test_adc)
+gtest_discover_tests(test_and)
+gtest_discover_tests(test_asl)
+gtest_discover_tests(test_ldxy)
+gtest_discover_tests(test_control_flow)
+
+# ============================================================================
+# Test target for running all tests
+# ============================================================================
+
+add_custom_target(run_tests
+    COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --verbose
+    DEPENDS
+        test_lda
+        test_adc
+        test_and
+        test_asl
+        test_ldxy
+        test_control_flow
+    COMMENT "Running all tests..."
+)
+
+message(STATUS "==============================================")
+message(STATUS "Tests:")
+message(STATUS "  - test_lda")
+message(STATUS "  - test_adc")
+message(STATUS "  - test_and")
+message(STATUS "  - test_asl")
+message(STATUS "  - test_ldxy")
+message(STATUS "  - test_control_flow")
+message(STATUS "Run with: make test or make run_tests")
+message(STATUS "==============================================")
+
+# ============================================================================
 # Installation
 # ============================================================================
 

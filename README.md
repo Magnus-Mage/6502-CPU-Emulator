@@ -11,7 +11,8 @@
 
 ## Instructions added from 6502:
 ```
-ADC, AND, LDA, LDX, LDY, JSR, RTS
+ADC, AND, LDA, LDX, LDY, JSR, RTS, ASL, CLC, CLD, CLI, CLV
 ```
 
 ---
+

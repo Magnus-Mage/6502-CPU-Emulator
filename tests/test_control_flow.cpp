@@ -6,9 +6,9 @@
 using namespace cpu6502;
 
 class ControlFlowTest : public ::testing::Test {
-protected:
+ protected:
     Memory mem;
-    CPU cpu;
+    CPU    cpu;
 
     void SetUp() override {
         mem[0xFFFC] = 0x00;
@@ -24,9 +24,9 @@ TEST_F(ControlFlowTest, JSR_RTS_BasicOperation) {
     mem[0x4242] = static_cast<u8>(Opcode::LDA_IM);
     mem[0x4243] = 0x84;
     mem[0x4244] = static_cast<u8>(Opcode::RTS);
-    
+
     auto result = cpu.execute(14, mem);
-    
+
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(cpu.get_a(), 0x84);
 }

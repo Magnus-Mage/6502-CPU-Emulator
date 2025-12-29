@@ -6,9 +6,9 @@
 using namespace cpu6502;
 
 class ANDTest : public ::testing::Test {
-protected:
+ protected:
     Memory mem;
-    CPU cpu;
+    CPU    cpu;
 
     void SetUp() override {
         mem[0xFFFC] = 0x00;
@@ -22,9 +22,9 @@ TEST_F(ANDTest, AND_Immediate_BasicOperation) {
     mem[0x8001] = 0xFF;
     mem[0x8002] = static_cast<u8>(Opcode::AND_IM);
     mem[0x8003] = 0x0F;
-    
+
     auto result = cpu.execute(4, mem);
-    
+
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(cpu.get_a(), 0x0F);
 }
@@ -34,9 +34,9 @@ TEST_F(ANDTest, AND_Immediate_SetsZeroFlag) {
     mem[0x8001] = 0xF0;
     mem[0x8002] = static_cast<u8>(Opcode::AND_IM);
     mem[0x8003] = 0x0F;
-    
+
     auto result = cpu.execute(4, mem);
-    
+
     ASSERT_TRUE(result.has_value());
     EXPECT_EQ(cpu.get_a(), 0x00);
     EXPECT_TRUE(cpu.get_flags().zero);

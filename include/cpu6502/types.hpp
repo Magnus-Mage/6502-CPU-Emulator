@@ -1,10 +1,9 @@
 #pragma once
 
-#include <cstdint>
 #include <concepts>
+#include <cstdint>
 
-namespace cpu6502
-{
+namespace cpu6502 {
 
 /**
  * Modern type alias using standard fixed-width types
@@ -17,7 +16,7 @@ using i32 = std::int32_t;
 /**
  * @brief concept for the address types
  */
-template<typename T>
+template <typename T>
 concept AddressType = std::unsigned_integral<T> && sizeof(T) <= sizeof(u16);
 
-} // namespace cpu6502
+}  // namespace cpu6502

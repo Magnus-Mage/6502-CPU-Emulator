@@ -1,18 +1,18 @@
+#include <print>
 #include "cpu6502/cpu.hpp"
 #include "cpu6502/memory.hpp"
 #include "cpu6502/opcodes.hpp"
-#include <print>
 
 int main() {
     using namespace cpu6502;
-    
+
     Memory mem;
-    CPU cpu;
-    
+    CPU    cpu;
+
     // Program the reset vector to point to our program at $8000
     mem[0xFFFC] = 0x00;  // Low byte of start address ($8000)
     mem[0xFFFD] = 0x80;  // High byte of start address ($8000)
-    
+
     std::println("6502 Emulator - Modern C++23");
     std::println("============================");
     std::println("Memory Map:");
@@ -21,7 +21,7 @@ int main() {
     std::println("  Program:    $8000-$FFFF (typical ROM location)");
     std::println("  Vectors:    $FFFA-$FFFF (NMI, RESET, IRQ/BRK)");
     std::println("");
-    
+
     // Test 1: Simple JSR/RTS
     cpu.reset(mem);  // Reset FIRST
     std::println("=== Test 1: JSR/RTS ===");
@@ -31,12 +31,12 @@ int main() {
     mem[0x4242] = static_cast<u8>(Opcode::LDA_IM);
     mem[0x4243] = 0x84;
     mem[0x4244] = static_cast<u8>(Opcode::RTS);
-    
+
     auto result = cpu.execute(14, mem);
     if (result) {
         std::println("✓ Test 1 passed - A: 0x{:02X}, Cycles: {}", cpu.get_a(), result.value());
     }
-    
+
     // Test 2: Absolute,X without page crossing (4 cycles)
     cpu.reset(mem);
     cpu.set_x(0x05);
@@ -45,14 +45,14 @@ int main() {
     mem[0x8001] = 0x00;
     mem[0x8002] = 0x20;
     mem[0x2005] = 0x42;
-    
+
     result = cpu.execute(4, mem);
     if (result) {
         std::println("✓ Base: $2000, X: $05, Effective: $2005");
-        std::println("✓ No page cross - A: 0x{:02X}, Cycles: {} (expected 4)",
-                    cpu.get_a(), result.value());
+        std::println("✓ No page cross - A: 0x{:02X}, Cycles: {} (expected 4)", cpu.get_a(),
+                     result.value());
     }
-    
+
     // Test 3: Absolute,X WITH page crossing (5 cycles)
     cpu.reset(mem);
     cpu.set_x(0xFF);
@@ -61,12 +61,12 @@ int main() {
     mem[0x8001] = 0xFF;
     mem[0x8002] = 0x20;
     mem[0x21FE] = 0x99;
-    
+
     result = cpu.execute(5, mem);
     if (result) {
         std::println("✓ Base: $20FF, X: $FF, Effective: $21FE");
         std::println("✓ Page crossed ($20 -> $21) - A: 0x{:02X}, Cycles: {} (expected 5)",
-                    cpu.get_a(), result.value());
+                     cpu.get_a(), result.value());
     }
 
     // Test 4: LDX Immediate (2 cycles)
@@ -77,15 +77,14 @@ int main() {
 
     result = cpu.execute(2, mem);
     if (result) {
-	std::println("✓ Value: $0x20 , Effective X: $0x20");
-        std::println("✓ X: 0x{:02X}, Cycles: {}",
-                    cpu.get_x(), result.value());
+        std::println("✓ Value: $0x20 , Effective X: $0x20");
+        std::println("✓ X: 0x{:02X}, Cycles: {}", cpu.get_x(), result.value());
     }
 
     // Test ADC Basic Addition
     cpu.reset(mem);
     std::println("\n=== Test: ADC Basic Addition ===");
-    cpu.set_flag_c(false); 
+    cpu.set_flag_c(false);
     mem[0x8000] = static_cast<u8>(Opcode::LDA_IM);
     mem[0x8001] = 0x05;
     mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
@@ -94,9 +93,8 @@ int main() {
     result = cpu.execute(4, mem);
     if (result) {
         std::println("✓ 0x05 + 0x03 = 0x{:02X} (expected 0x08)", cpu.get_a());
-        std::println("✓ Carry: {}, Zero: {}, Negative: {}, Overflow: {}",
-                    cpu.get_flags().carry, cpu.get_flags().zero,
-                    cpu.get_flags().negative, cpu.get_flags().overflow);
+        std::println("✓ Carry: {}, Zero: {}, Negative: {}, Overflow: {}", cpu.get_flags().carry,
+                     cpu.get_flags().zero, cpu.get_flags().negative, cpu.get_flags().overflow);
     }
 
     // Test ADC with Carry Flag Set
@@ -139,11 +137,10 @@ int main() {
     result = cpu.execute(4, mem);
     if (result) {
         std::println("✓ 0xFF + 0x01 = 0x{:02X} (expected 0x00)", cpu.get_a());
-        std::println("✓ Carry: {}, Zero: {}", 
-                    cpu.get_flags().carry, cpu.get_flags().zero);
+        std::println("✓ Carry: {}, Zero: {}", cpu.get_flags().carry, cpu.get_flags().zero);
     }
-    
+
     std::println("\n=== All Tests Complete ===");
-    
+
     return 0;
 }

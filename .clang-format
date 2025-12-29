@@ -18,17 +18,17 @@ ColumnLimit: 100
 # Braces
 BreakBeforeBraces: Custom
 BraceWrapping:
-  AfterClass: false
-  AfterControlStatement: Never
-  AfterEnum: false
-  AfterFunction: false
-  AfterNamespace: false
-  AfterStruct: false
-  AfterUnion: false
-  AfterExternBlock: false
-  BeforeCatch: false
-  BeforeElse: false
-  IndentBraces: false
+  AfterClass: true
+  AfterControlStatement: Always
+  AfterEnum: true
+  AfterFunction: true
+  AfterNamespace: true
+  AfterStruct: true
+  AfterUnion: true
+  AfterExternBlock: true
+  BeforeCatch: true
+  BeforeElse: true
+  IndentBraces: true
   SplitEmptyFunction: true
   SplitEmptyRecord: true
   SplitEmptyNamespace: true

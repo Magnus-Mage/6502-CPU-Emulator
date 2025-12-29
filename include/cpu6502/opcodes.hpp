@@ -2,13 +2,15 @@
 
 #include "types.hpp"
 
-namespace cpu6502 {
+namespace cpu6502
+{
 
 /**
  * @type enum class
  * @brief opcodes (type-safe enum)
  */
-enum class Opcode : u8 {
+enum class Opcode : u8
+{
     // LDA - Load Accumlator
     LDA_IM   = 0xA9,  // Load Accumulator - Immediate
     LDA_ZP   = 0xA5,  // Load Accumulator - Zero Page
@@ -60,7 +62,11 @@ enum class Opcode : u8 {
     ASL_ABS  = 0x0E,  // Arithmetic Shift Left - Absolute
     ASL_ABSX = 0x1E,  // Arithmetic Shift Left - Absolute, X
 
-    // CLC - Clear Carry Flag
+    // Clear Flags
+    CLC = 0x18,  // CLC - Clear Carry Flag - Implied
+    CLD = 0xD8,  // CLD - Clear Decimal Mode - Implied
+    CLI = 0x58,  // CLI - Clear Interrupt Disable
+    CLV = 0xB8,  // CLV - Clear Overflow Flag
 
     // Control Flow
     JSR     = 0x20,  // Jump to Subroutine
@@ -72,99 +78,111 @@ enum class Opcode : u8 {
 /**
  * @brief Helper to get opcode name
  */
-constexpr const char* opcode_name(Opcode op) noexcept {
-    switch (op) {
-        // LDA
-        case Opcode::LDA_IM:
-            return "LDA_IM";
-        case Opcode::LDA_ZP:
-            return "LDA_ZP";
-        case Opcode::LDA_ZPX:
-            return "LDA_ZPX";
-        case Opcode::LDA_ABS:
-            return "LDA_ABS";
-        case Opcode::LDA_ABSX:
-            return "LDA_ABSX";
-        case Opcode::LDA_ABSY:
-            return "LDA_ABSY";
-        // LDX
-        case Opcode::LDX_IM:
-            return "LDX_IM";
-        case Opcode::LDX_ZP:
-            return "LDX_ZP";
-        case Opcode::LDX_ZPY:
-            return "LDX_ZPY";
-        case Opcode::LDX_ABS:
-            return "LDX_ABS";
-        case Opcode::LDX_ABSY:
-            return "LDX_ABSY";
-        // LDY
-        case Opcode::LDY_IM:
-            return "LDY_IM";
-        case Opcode::LDY_ZP:
-            return "LDY_ZP";
-        case Opcode::LDY_ZPX:
-            return "LDY_ZPX";
-        case Opcode::LDY_ABS:
-            return "LDY_ABS";
-        case Opcode::LDY_ABSX:
-            return "LDY_ABSX";
-        // ADC
-        case Opcode::ADC_IM:
-            return "ADC_IM";
-        case Opcode::ADC_ZP:
-            return "ADC_ZP";
-        case Opcode::ADC_ZPX:
-            return "ADC_ZPX";
-        case Opcode::ADC_ABS:
-            return "ADC_ABS";
-        case Opcode::ADC_ABSX:
-            return "ADC_ABSX";
-        case Opcode::ADC_ABSY:
-            return "ADC_ABSY";
-        case Opcode::ADC_INDX:
-            return "ADC_INDX";
-        case Opcode::ADC_INDY:
-            return "ADC_INDY";
-        // AND
-        case Opcode::AND_IM:
-            return "AND_IM";
-        case Opcode::AND_ZP:
-            return "AND_ZP";
-        case Opcode::AND_ZPX:
-            return "AND_ZPX";
-        case Opcode::AND_ABS:
-            return "AND_ABS";
-        case Opcode::AND_ABSX:
-            return "AND_ABSX";
-        case Opcode::AND_ABSY:
-            return "AND_ABSY";
-        case Opcode::AND_INDX:
-            return "AND_INDX";
-        case Opcode::AND_INDY:
-            return "AND_INDY";
+constexpr const char* opcode_name(Opcode op) noexcept
+{
+    switch (op)
+        {
+            // LDA
+            case Opcode::LDA_IM:
+                return "LDA_IM";
+            case Opcode::LDA_ZP:
+                return "LDA_ZP";
+            case Opcode::LDA_ZPX:
+                return "LDA_ZPX";
+            case Opcode::LDA_ABS:
+                return "LDA_ABS";
+            case Opcode::LDA_ABSX:
+                return "LDA_ABSX";
+            case Opcode::LDA_ABSY:
+                return "LDA_ABSY";
+            // LDX
+            case Opcode::LDX_IM:
+                return "LDX_IM";
+            case Opcode::LDX_ZP:
+                return "LDX_ZP";
+            case Opcode::LDX_ZPY:
+                return "LDX_ZPY";
+            case Opcode::LDX_ABS:
+                return "LDX_ABS";
+            case Opcode::LDX_ABSY:
+                return "LDX_ABSY";
+            // LDY
+            case Opcode::LDY_IM:
+                return "LDY_IM";
+            case Opcode::LDY_ZP:
+                return "LDY_ZP";
+            case Opcode::LDY_ZPX:
+                return "LDY_ZPX";
+            case Opcode::LDY_ABS:
+                return "LDY_ABS";
+            case Opcode::LDY_ABSX:
+                return "LDY_ABSX";
+            // ADC
+            case Opcode::ADC_IM:
+                return "ADC_IM";
+            case Opcode::ADC_ZP:
+                return "ADC_ZP";
+            case Opcode::ADC_ZPX:
+                return "ADC_ZPX";
+            case Opcode::ADC_ABS:
+                return "ADC_ABS";
+            case Opcode::ADC_ABSX:
+                return "ADC_ABSX";
+            case Opcode::ADC_ABSY:
+                return "ADC_ABSY";
+            case Opcode::ADC_INDX:
+                return "ADC_INDX";
+            case Opcode::ADC_INDY:
+                return "ADC_INDY";
+            // AND
+            case Opcode::AND_IM:
+                return "AND_IM";
+            case Opcode::AND_ZP:
+                return "AND_ZP";
+            case Opcode::AND_ZPX:
+                return "AND_ZPX";
+            case Opcode::AND_ABS:
+                return "AND_ABS";
+            case Opcode::AND_ABSX:
+                return "AND_ABSX";
+            case Opcode::AND_ABSY:
+                return "AND_ABSY";
+            case Opcode::AND_INDX:
+                return "AND_INDX";
+            case Opcode::AND_INDY:
+                return "AND_INDY";
 
-            // Arthmetic Shift Left
-        case Opcode::ASL_A:
-            return "ASL_A";
-        case Opcode::ASL_ZP:
-            return "ASL_ZP";
-        case Opcode::ASL_ZPX:
-            return "ASL_ZPX";
-        case Opcode::ASL_ABS:
-            return "ASL_ABS";
-        case Opcode::ASL_ABSX:
-            return "ASL_ABSX";
+                // Arthmetic Shift Left
+            case Opcode::ASL_A:
+                return "ASL_A";
+            case Opcode::ASL_ZP:
+                return "ASL_ZP";
+            case Opcode::ASL_ZPX:
+                return "ASL_ZPX";
+            case Opcode::ASL_ABS:
+                return "ASL_ABS";
+            case Opcode::ASL_ABSX:
+                return "ASL_ABSX";
 
-        // Control FLow
-        case Opcode::JSR:
-            return "JSR";
-        case Opcode::RTS:
-            return "RTS";
+            // Clear Flags
+            case Opcode::CLC:
+                return "CLC";
+            case Opcode::CLD:
+                return "CLD";
+            case Opcode::CLI:
+                return "CLI";
+            case Opcode::CLV:
+                return "CLV";
 
-        default:
-            return "UNKNOWN";
-    }
+            // Control FLow
+            case Opcode::JSR:
+                return "JSR";
+            case Opcode::RTS:
+                return "RTS";
+
+            default:
+                return "UNKNOWN";
+        }
 }
 
 }  // namespace cpu6502

@@ -1,5 +1,5 @@
 #!/bin/bash
-# rebuild.sh - Linux/macOS build script
+# rebuild.sh - Linux/macOS build script with test support
 
 set -e  # Exit on error
 
@@ -7,6 +7,7 @@ set -e  # Exit on error
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 echo -e "${GREEN}================================${NC}"
@@ -17,6 +18,8 @@ echo -e "${GREEN}================================${NC}"
 BUILD_TYPE="Release"
 CLEAN=false
 VERBOSE=false
+RUN_TESTS=false
+RUN_DEMO=false
 
 while [[ $# -gt 0 ]]; do
     case $1 in
@@ -36,6 +39,14 @@ while [[ $# -gt 0 ]]; do
             VERBOSE=true
             shift
             ;;
+        -t|--test)
+            RUN_TESTS=true
+            shift
+            ;;
+        --run)
+            RUN_DEMO=true
+            shift
+            ;;
         -h|--help)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -44,7 +55,14 @@ while [[ $# -gt 0 ]]; do
             echo "  -r, --release   Build in Release mode (default)"
             echo "  -c, --clean     Clean build directory first"
             echo "  -v, --verbose   Verbose build output"
+            echo "  -t, --test      Run tests after building"
+            echo "  --run           Run demo executable after building"
             echo "  -h, --help      Show this help message"
+            echo ""
+            echo "Examples:"
+            echo "  $0                  # Build in release mode"
+            echo "  $0 -d -t            # Build debug and run tests"
+            echo "  $0 --clean --test   # Clean build and run tests"
             exit 0
             ;;
         *)
@@ -87,7 +105,29 @@ fi
 echo -e "${GREEN}================================${NC}"
 echo -e "${GREEN}Build completed successfully!${NC}"
 echo -e "${GREEN}================================${NC}"
+
+# Run tests if requested
+if [ "$RUN_TESTS" = true ]; then
+    echo -e "${BLUE}================================${NC}"
+    echo -e "${BLUE}Running Tests...${NC}"
+    echo -e "${BLUE}================================${NC}"
+    ctest --output-on-failure --verbose
+    echo -e "${GREEN}================================${NC}"
+    echo -e "${GREEN}Tests completed!${NC}"
+    echo -e "${GREEN}================================${NC}"
+fi
+
+# Run demo if requested
+if [ "$RUN_DEMO" = true ]; then
+    echo -e "${BLUE}================================${NC}"
+    echo -e "${BLUE}Running Demo...${NC}"
+    echo -e "${BLUE}================================${NC}"
+    ./bin/6502emu
+fi
+
 echo -e "Executable: ${YELLOW}$BUILD_DIR/bin/6502emu${NC}"
 echo -e "Library:    ${YELLOW}$BUILD_DIR/lib/libcpu6502.a${NC}"
 echo ""
-echo -e "To run: ${YELLOW}./$BUILD_DIR/bin/6502emu${NC}"
+echo -e "To run demo:  ${YELLOW}./$BUILD_DIR/bin/6502emu${NC}"
+echo -e "To run tests: ${YELLOW}cd $BUILD_DIR && ctest${NC}"
+echo -e "              ${YELLOW}or ./rebuild.sh -t${NC}"

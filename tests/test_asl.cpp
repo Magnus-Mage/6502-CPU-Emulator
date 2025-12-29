@@ -29,8 +29,7 @@ TEST_F(ASLTest, ASL_Accumulator_ShiftsLeft) {
     mem[0x8002] = static_cast<u8>(Opcode::ASL_A);
     
     // when:
-    (void)cpu.execute(2, mem);
-    auto result = cpu.execute(2, mem);  // 2 cycles LDA + 2 cycles ASL
+    auto result = cpu.execute(4, mem);  // 2 cycles LDA + 2 cycles ASL
     
     // then:
     ASSERT_TRUE(result.has_value());

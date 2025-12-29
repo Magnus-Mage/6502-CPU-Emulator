@@ -955,6 +955,8 @@ inline constexpr auto CPU::execute_shift_left_zero_page(i32& cycles, Memory& mem
 
     u8 temp = value.value();
     arthmetic_shift_left(temp);
+	
+    cycles--;
 
     auto write_result = memory.write_byte(address.value(), temp);
     if (!write_result) return write_result;
@@ -979,6 +981,8 @@ inline constexpr auto CPU::execute_shift_left_zero_page_x(i32& cycles, Memory& m
     u8 temp = value.value();
     arthmetic_shift_left(temp);
 
+    cycles--;
+
     auto write_result = memory.write_byte(final_addr, temp);
     if (!write_result) return write_result;
     cycles--;
@@ -998,6 +1002,8 @@ inline constexpr auto CPU::execute_shift_left_absolute(i32& cycles, Memory& memo
 
     u8 temp = value.value();
     arthmetic_shift_left(temp);
+
+    cycles--;
 
     auto write_result = memory.write_byte(address.value(), temp);
     if (!write_result) return write_result;
@@ -1020,6 +1026,8 @@ inline constexpr auto CPU::execute_shift_left_absolute_x(i32& cycles, Memory& me
     
     u8 temp = value.value();
     arthmetic_shift_left(temp);
+
+    cycles--;
 
     auto write_result = memory.write_byte(final_address, temp);
     if (!write_result) return write_result;

@@ -30,62 +30,61 @@ message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 message(STATUS "C++ Standard: C++${CMAKE_CXX_STANDARD}")
 
 # ============================================================================
-# Compiler Flags
+# Compiler Flags Function (Applied per-target, not globally)
 # ============================================================================
 
-# Warning flags
-if(MSVC)
-    add_compile_options(
-        /W4                 # Warning level 4
-        /WX                 # Treat warnings as errors
-        /permissive-        # Standards conformance mode
-        /Zc:__cplusplus     # Enable updated __cplusplus macro
-        /utf-8              # Set source and execution character sets to UTF-8
-    )
-    
-    # MSVC-specific optimizations
-    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-        add_compile_options(/O2 /Ob2 /Oi /Ot /GL)
-        add_link_options(/LTCG)
+function(apply_strict_warnings target_name)
+    if(MSVC)
+        target_compile_options(${target_name} PRIVATE
+            /W4                 # Warning level 4
+            /WX                 # Treat warnings as errors
+            /permissive-        # Standards conformance mode
+            /Zc:__cplusplus     # Enable updated __cplusplus macro
+            /utf-8              # Set source and execution character sets to UTF-8
+        )
+        
+        # MSVC-specific optimizations
+        if(CMAKE_BUILD_TYPE STREQUAL "Release")
+            target_compile_options(${target_name} PRIVATE /O2 /Ob2 /Oi /Ot /GL)
+            target_link_options(${target_name} PRIVATE /LTCG)
+        endif()
+    else()
+        target_compile_options(${target_name} PRIVATE
+            -Wall               # Enable most warnings
+            -Wextra             # Enable extra warnings
+            -Wpedantic          # Strict ISO C++ compliance
+            -Werror             # Treat warnings as errors
+            -Wconversion        # Warn on implicit conversions
+            -Wsign-conversion   # Warn on sign conversions
+            -Wshadow            # Warn on variable shadowing
+            -Wnon-virtual-dtor  # Warn on non-virtual destructors
+            -Wold-style-cast    # Warn on C-style casts
+            -Wcast-align        # Warn on alignment issues
+            -Wunused            # Warn on unused variables
+            -Woverloaded-virtual # Warn on overloaded virtuals
+            -Wnull-dereference  # Warn on null pointer dereferences
+            -Wdouble-promotion  # Warn on float to double promotion
+        )
+        
+        # GCC/Clang-specific optimizations
+        if(CMAKE_BUILD_TYPE STREQUAL "Release")
+            target_compile_options(${target_name} PRIVATE -O3 -march=native -flto)
+            target_link_options(${target_name} PRIVATE -flto)
+        endif()
+        
+        # Debug flags
+        if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+            target_compile_options(${target_name} PRIVATE -g -O0)
+        endif()
     endif()
-else()
-    add_compile_options(
-        -Wall               # Enable most warnings
-        -Wextra             # Enable extra warnings
-        -Wpedantic          # Strict ISO C++ compliance
-        -Werror             # Treat warnings as errors
-        -Wconversion        # Warn on implicit conversions
-        -Wsign-conversion   # Warn on sign conversions
-        -Wshadow            # Warn on variable shadowing
-        -Wnon-virtual-dtor  # Warn on non-virtual destructors
-        -Wold-style-cast    # Warn on C-style casts
-        -Wcast-align        # Warn on alignment issues
-        -Wunused            # Warn on unused variables
-        -Woverloaded-virtual # Warn on overloaded virtuals
-        -Wnull-dereference  # Warn on null pointer dereferences
-        -Wdouble-promotion  # Warn on float to double promotion
-    )
-    
-    # GCC/Clang-specific optimizations
-    if(CMAKE_BUILD_TYPE STREQUAL "Release")
-        add_compile_options(-O3 -march=native -flto)
-        add_link_options(-flto)
-    endif()
-    
-    # Debug flags
-    if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-        add_compile_options(-g -O0)
-    endif()
-endif()
+endfunction()
 
 # ============================================================================
 # Library: cpu6502 (Static Library)
 # ============================================================================
 
 add_library(cpu6502 STATIC
-	# src/memory.cpp
     src/cpu.cpp
-        # src/cpu_instructions.cpp
 )
 
 # Set library properties
@@ -112,6 +111,9 @@ target_compile_definitions(cpu6502
         $<$<CONFIG:Release>:CPU6502_RELEASE>
 )
 
+# Apply strict warnings to our library
+apply_strict_warnings(cpu6502)
+
 # ============================================================================
 # Executable: emulator_demo
 # ============================================================================
@@ -134,6 +136,9 @@ target_link_libraries(emulator_demo
         cpu6502
 )
 
+# Apply strict warnings to our executable
+apply_strict_warnings(emulator_demo)
+
 # ============================================================================
 # Google Test Setup
 # ============================================================================
@@ -155,6 +160,18 @@ set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
 # Make Google Test available
 FetchContent_MakeAvailable(googletest)
 
+# Disable problematic warnings for Google Test (external library)
+if(NOT MSVC)
+    target_compile_options(gtest PRIVATE -Wno-double-promotion)
+    target_compile_options(gtest_main PRIVATE -Wno-double-promotion)
+    if(TARGET gmock)
+        target_compile_options(gmock PRIVATE -Wno-double-promotion)
+    endif()
+    if(TARGET gmock_main)
+        target_compile_options(gmock_main PRIVATE -Wno-double-promotion)
+    endif()
+endif()
+
 # ============================================================================
 # Test Executables
 # ============================================================================
@@ -170,6 +187,8 @@ target_link_libraries(test_lda
         GTest::gtest_main
 )
 
+apply_strict_warnings(test_lda)
+
 # Test for ADC instructions
 add_executable(test_adc
     tests/test_adc.cpp
@@ -180,6 +199,8 @@ target_link_libraries(test_adc
         cpu6502
         GTest::gtest_main
 )
+
+apply_strict_warnings(test_adc)
 
 # Test for AND instructions
 add_executable(test_and
@@ -192,6 +213,8 @@ target_link_libraries(test_and
         GTest::gtest_main
 )
 
+apply_strict_warnings(test_and)
+
 # Test for ASL instructions
 add_executable(test_asl
     tests/test_asl.cpp
@@ -202,6 +225,8 @@ target_link_libraries(test_asl
         cpu6502
         GTest::gtest_main
 )
+
+apply_strict_warnings(test_asl)
 
 # Test for LDX/LDY instructions
 add_executable(test_ldxy
@@ -214,6 +239,8 @@ target_link_libraries(test_ldxy
         GTest::gtest_main
 )
 
+apply_strict_warnings(test_ldxy)
+
 # Test for JSR/RTS instructions
 add_executable(test_control_flow
     tests/test_control_flow.cpp
@@ -224,6 +251,8 @@ target_link_libraries(test_control_flow
         cpu6502
         GTest::gtest_main
 )
+
+apply_strict_warnings(test_control_flow)
 
 # ============================================================================
 # Register Tests with CTest
@@ -244,11 +273,11 @@ gtest_discover_tests(test_control_flow)
 
 add_custom_target(run_tests
     COMMAND ${CMAKE_CTEST_COMMAND} --output-on-failure --verbose
-    DEPENDS
-        test_lda
-        test_adc
-        test_and
-        test_asl
+    DEPENDS 
+        test_lda 
+        test_adc 
+        test_and 
+        test_asl 
         test_ldxy
         test_control_flow
     COMMENT "Running all tests..."

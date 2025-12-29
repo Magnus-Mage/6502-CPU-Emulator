@@ -47,7 +47,7 @@ TEST_F(ADCTest, ADC_Immediate_WithCarryFlagSet) {
     mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
     mem[0x8003] = 0x03;
     
-    cpu.execute(2, mem);  // Load 0x05
+    (void)cpu.execute(2, mem);  // Load 0x05
     cpu.set_flag_c(true);  // Set carry
     
     // when:
@@ -95,7 +95,7 @@ TEST_F(ADCTest, ADC_CarryChainAddition) {
     mem[0x8007] = 0x00;
     
     // when:
-    cpu.execute(4, mem);  // First addition
+    (void) cpu.execute(4, mem);  // First addition
     EXPECT_TRUE(cpu.get_flags().carry);
     
     auto result = cpu.execute(4, mem);  // Second addition with carry
@@ -360,7 +360,7 @@ TEST_F(ADCTest, ADC_MultiByteAddition_16Bit) {
     mem[0x8002] = static_cast<u8>(Opcode::ADC_IM);
     mem[0x8003] = 0x02;
     
-    cpu.execute(4, mem);
+    (void)cpu.execute(4, mem);
     EXPECT_EQ(cpu.get_a(), 0x01);  // Low byte result
     EXPECT_TRUE(cpu.get_flags().carry);  // Carry for high byte
     

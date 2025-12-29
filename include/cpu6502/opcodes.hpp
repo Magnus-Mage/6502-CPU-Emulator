@@ -53,7 +53,14 @@ enum class Opcode : u8
 	AND_ABSX	=	0x3D,		// Logical AND - Absolute, X
 	AND_ABSY	=	0x39,		// Logical AND - Absolute, Y
 	AND_INDX	=	0x21,		// Logical AND - Indirect, X
-	AND_INDY	=	0x31,		// Logical AND - Indirect, Y			
+	AND_INDY	=	0x31,		// Logical AND - Indirect, Y		
+						
+       	// ASL - Arithmetic Shift Left
+   	 ASL_A       	= 	0x0A,     	// Arithmetic Shift Left - Accumulator
+    	ASL_ZP     	= 	0x06,     	// Arithmetic Shift Left - Zero Page
+    	ASL_ZPX     	= 	0x16,     	// Arithmetic Shift Left - Zero Page, X
+    	ASL_ABS     	= 	0x0E,     	// Arithmetic Shift Left - Absolute
+    	ASL_ABSX    	= 	0x1E,     	// Arithmetic Shift Left - Absolute, X
 	
     // Control Flow 
     JSR         =   0x20,       // Jump to Subroutine
@@ -106,6 +113,14 @@ constexpr const char* opcode_name (Opcode op) noexcept
 		case Opcode::AND_ABSY: return "AND_ABSY";
 		case Opcode::AND_INDX: return "AND_INDX";
 		case Opcode::AND_INDY: return "AND_INDY";
+	
+	// Arthmetic Shift Left
+        case Opcode::ASL_A:    return "ASL_A";
+        case Opcode::ASL_ZP:   return "ASL_ZP";
+        case Opcode::ASL_ZPX:  return "ASL_ZPX";
+        case Opcode::ASL_ABS:  return "ASL_ABS";
+        case Opcode::ASL_ABSX: return "ASL_ABSX";
+
         //Control FLow
         case Opcode::JSR:      return "JSR";
         case Opcode::RTS:      return "RTS";

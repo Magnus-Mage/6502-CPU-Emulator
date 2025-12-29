@@ -219,7 +219,7 @@ private:
 
     // Arthmetic Shift Left
 
-    [[nodiscard]] constexpr auto execute_shift_left_accumulator(i32& cycles, Memory& memory) 
+    [[nodiscard]] constexpr auto execute_shift_left_accumulator(i32& cycles) 
         -> std::expected<void, EmulatorError>;
     
     [[nodiscard]] constexpr auto execute_shift_left_zero_page(i32& cycles, Memory& memory) 
@@ -936,7 +936,7 @@ inline constexpr auto CPU::execute_and_indirect_y(i32& cycles, Memory& memory)
 }
 
 // Arthmetic Shift Left
-inline constexpr auto CPU::execute_shift_left_accumulator(i32& cycles, Memory& memory)
+inline constexpr auto CPU::execute_shift_left_accumulator(i32& cycles)
     -> std::expected<void, EmulatorError>
 {
     cycles--;

@@ -148,6 +148,22 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 		case Opcode::AND_INDY:
 			return execute_and_indirect_y(cycles, memory);
 		
+		// ASL - Arithmetic Shift Left
+	
+		case Opcode::ASL_A:
+		    return execute_shift_left_accumulator(cycles);
+		
+		case Opcode::ASL_ZP:
+		    return execute_shift_left_zero_page(cycles, memory);
+		
+		case Opcode::ASL_ZPX:
+		    return execute_shift_left_zero_page_x(cycles, memory);
+		
+		case Opcode::ASL_ABS:
+		    return execute_shift_left_absolute(cycles, memory);
+		
+		case Opcode::ASL_ABSX:
+		    return execute_shift_left_absolute_x(cycles, memory);
 
 		// Control Flow Instructions
 

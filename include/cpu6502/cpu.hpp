@@ -243,6 +243,41 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_shift_left_absolute_x(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // Branch Instructions
+
+    [[nodiscard]] constexpr auto execute_bcc(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bcs(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_beq(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bit_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bit_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bmi(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bne(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bpl(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_brk(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bvc(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_bvs(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -1158,6 +1193,279 @@ inline constexpr auto CPU::execute_shift_left_absolute_x(i32& cycles, Memory& me
         return write_result;
     cycles--;
     return {};
+}
+
+// Branch Instructions
+
+inline constexpr auto CPU::execute_bcc(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (!flags_.carry)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bcs(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (flags_.carry)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_beq(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (flags_.zero)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bit_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (!flags_.carry)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bit_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+}
+
+inline constexpr auto CPU::execute_bmi(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (flags_.negative)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bne(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (!flags_.zero)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bpl(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (!flags_.negative)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bvc(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (!flags_.overflow)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_bvs(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto offset_result = fetch_byte(cycles, memory);
+    if (!offset_result)
+        return std::unexpected(offset_result.error());
+
+    // Convert to signed 8 bit value
+    i8 offset = static_cast<i8>(offset_result.value());
+
+    if (flags_.overflow)
+        {
+            cycles--;
+
+            u16 old_pc = pc_;
+
+            // Apply the offset to the program counter
+            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
+
+            if (page_crossed(old_pc, pc_))
+                {
+                    cycles--;
+                }
+        }
+
+    // If branch not taken PC already advanced by fetch_byte
+    return {};
+}
+
+inline constexpr auto CPU::execute_brk(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
 }
 
 }  // namespace cpu6502

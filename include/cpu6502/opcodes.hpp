@@ -68,6 +68,19 @@ enum class Opcode : u8
     CLI = 0x58,  // CLI - Clear Interrupt Disable
     CLV = 0xB8,  // CLV - Clear Overflow Flag
 
+    // Branch Instructions
+    BCC     = 0x90,  // BCC - Branch if Carry Clear
+    BCS     = 0xB0,  // BCS - Branch if Carry Set
+    BEQ     = 0xF0,  // BEQ - Branch if Equal
+    BIT_ZP  = 0x24,  // Bit Test - Zero Page
+    BIT_ABS = 0x2C,  // Bit Test - Absolute
+    BMI     = 0x30,  // Branch if Minus
+    BNE     = 0xD0,  // Branch if Not Equal
+    BPL     = 0x10,  // Branch if Positive
+    BRK     = 0x00,  // Force Interrupt
+    BVC     = 0x50,  // Branch if Overflow Clear
+    BVS     = 0x70,  // Branch if Overflow Set
+
     // Control Flow
     JSR     = 0x20,  // Jump to Subroutine
     RTS     = 0x60,  // Return from Subroutine
@@ -173,6 +186,30 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "CLI";
             case Opcode::CLV:
                 return "CLV";
+
+            // Branch Instructions
+            case Opcode::BCC:
+                return "BCC";
+            case Opcode::BCS:
+                return "BCS";
+            case Opcode::BEQ:
+                return "BEQ";
+            case Opcode::BIT_ZP:
+                return "BIT_ZP";
+            case Opcode::BIT_ABS:
+                return "BIT_ABS";
+            case Opcode::BMI:
+                return "BMI";
+            case Opcode::BNE:
+                return "BNE";
+            case Opcode::BPL:
+                return "BPL";
+            case Opcode::BRK:
+                return "BRK";
+            case Opcode::BVC:
+                return "BVC";
+            case Opcode::BCS:
+                return "BCS";
 
             // Control FLow
             case Opcode::JSR:

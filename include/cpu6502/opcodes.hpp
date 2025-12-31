@@ -208,8 +208,8 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "BRK";
             case Opcode::BVC:
                 return "BVC";
-            case Opcode::BCS:
-                return "BCS";
+            case Opcode::BVS:
+                return "BVS";
 
             // Control FLow
             case Opcode::JSR:

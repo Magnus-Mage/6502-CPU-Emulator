@@ -184,22 +184,31 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
             case Opcode::BCS:
                 return execute_bcs(cycles, memory);
+
             case Opcode::BEQ:
                 return execute_beq(cycles, memory);
+
             case Opcode::BIT_ZP:
                 return execute_bit_zero_page(cycles, memory);
+
             case Opcode::BIT_ABS:
                 return execute_bit_absolute(cycles, memory);
+
             case Opcode::BMI:
                 return execute_bmi(cycles, memory);
+
             case Opcode::BNE:
                 return execute_bne(cycles, memory);
+
             case Opcode::BPL:
                 return execute_bpl(cycles, memory);
+
             case Opcode::BRK:
                 return execute_brk(cycles, memory);
+
             case Opcode::BVC:
                 return execute_bvc(cycles, memory);
+
             case Opcode::BVS:
                 return execute_bvs(cycles, memory);
                 // Control Flow Instructions

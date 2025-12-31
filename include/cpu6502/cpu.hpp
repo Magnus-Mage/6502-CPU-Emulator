@@ -1287,35 +1287,45 @@ inline constexpr auto CPU::execute_beq(i32& cycles, Memory& memory)
 inline constexpr auto CPU::execute_bit_zero_page(i32& cycles, Memory& memory)
     -> std::expected<void, EmulatorError>
 {
-    auto offset_result = fetch_byte(cycles, memory);
-    if (!offset_result)
-        return std::unexpected(offset_result.error());
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
 
-    // Convert to signed 8 bit value
-    i8 offset = static_cast<i8>(offset_result.value());
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
 
-    if (!flags_.carry)
-        {
-            cycles--;
+    // Perform AND but don't store result
+    u8 result = a_ & value.value();
 
-            u16 old_pc = pc_;
+    // Set flags based on the operation
+    flags_.zero     = (result == 0);
+    flags_.negative = (value.value() & 0x80) != 0;  // Bit 7 of MEMORY
+    flags_.overflow = (value.value() & 0x40) != 0;  // Bit 6 of MEMORY
 
-            // Apply the offset to the program counter
-            pc_ = static_cast<u16>(static_cast<i32>(pc_) + offset);
-
-            if (page_crossed(old_pc, pc_))
-                {
-                    cycles--;
-                }
-        }
-
-    // If branch not taken PC already advanced by fetch_byte
     return {};
 }
 
 inline constexpr auto CPU::execute_bit_absolute(i32& cycles, Memory& memory)
     -> std::expected<void, EmulatorError>
 {
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    // Perform AND but don't store result
+    u8 result = a_ & value.value();
+
+    // Set flags
+    flags_.zero     = (result == 0);
+    flags_.negative = (value.value() & 0x80) != 0;  // Bit 7 of MEMORY
+    flags_.overflow = (value.value() & 0x40) != 0;  // Bit 6 of MEMORY
+
+    return {};
 }
 
 inline constexpr auto CPU::execute_bmi(i32& cycles, Memory& memory)
@@ -1466,6 +1476,37 @@ inline constexpr auto CPU::execute_bvs(i32& cycles, Memory& memory)
 inline constexpr auto CPU::execute_brk(i32& cycles, Memory& memory)
     -> std::expected<void, EmulatorError>
 {
+    // BRK is a 2-byte instruction (opcode + padding byte)
+    pc_++;  // Skip the padding byte
+
+    // Push PC (return address) onto stack
+    auto push_high = push_byte(cycles, static_cast<u8>(pc_ >> 8), memory);
+    if (!push_high)
+        return push_high;
+
+    auto push_low = push_byte(cycles, static_cast<u8>(pc_ & 0xFF), memory);
+    if (!push_low)
+        return push_low;
+
+    // Push status flags with Break flag set
+    flags_.brk       = true;
+    u8   status      = flags_.to_byte();
+    auto push_status = push_byte(cycles, status, memory);
+    if (!push_status)
+        return push_status;
+
+    // Set Interrupt Disable flag
+    flags_.interrupt = true;
+
+    // Load PC from IRQ vector at $FFFE-$FFFF
+    auto irq_vector = memory.read_word(IRQ_VECTOR);
+    if (!irq_vector)
+        return std::unexpected(irq_vector.error());
+
+    pc_ = irq_vector.value();
+    cycles -= 2;  // Reading the vector takes 2 cycles
+
+    return {};
 }
 
 }  // namespace cpu6502

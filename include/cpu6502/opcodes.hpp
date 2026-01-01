@@ -55,6 +55,16 @@ enum class Opcode : u8
     AND_INDX = 0x21,  // Logical AND - Indirect, X
     AND_INDY = 0x31,  // Logical AND - Indirect, Y
 
+    // EOR - Exclusive OR
+    EOR_IM   = 0x49,  // Exclusive OR - Immediate
+    EOR_ZP   = 0x45,  // Exclusive OR - Zero Page
+    EOR_ZPX  = 0x55,  // Exclusive OR - Zero Page, X
+    EOR_ABS  = 0x4D,  // Exclusive OR - Absolute
+    EOR_ABSX = 0x5D,  // Exclusive OR - Absolute, X
+    EOR_ABSY = 0x59,  // Exclusive OR - Absolute, Y
+    EOR_INDX = 0x41,  // Exclusive OR - Indirect, X
+    EOR_INDY = 0x51,  // Exclusive OR - Indirect, Y
+
     // ASL - Arithmetic Shift Left
     ASL_A    = 0x0A,  // Arithmetic Shift Left - Accumulator
     ASL_ZP   = 0x06,  // Arithmetic Shift Left - Zero Page
@@ -81,6 +91,41 @@ enum class Opcode : u8
     BVC     = 0x50,  // Branch if Overflow Clear
     BVS     = 0x70,  // Branch if Overflow Set
 
+    // Comparision Registers
+    CMP_IM  = 0xC9,  // Compare - Immediate
+    CMP_ZP  = 0xC5,  // Compare - Zero Page
+    CMP_ZPX = 0xD5,  // Compare - Zero Page, X
+    CMP_ABS = 0xCD,  // Compare - Absolute
+    CMP_ABSX = 0xDD, // Compare - Absolute, X
+    CMP_ABSY = 0xD9, // Compare - Absolute, Y
+    CMP_INDX = 0xC1, // Compare - Indirect, X
+    CMP_INDY = 0xD1, // Compare - Indirect, Y
+    
+    CPX_IM = 0xE0,  // Compare X Register - Immediate
+    CPX_ZP = 0xE4,  // Compare X Register - Zero Page
+    CPX_ABS = 0xEC, // Compare X Register - Absolute
+
+    CPY_IM = 0xC0,  // Compare Y Register - Immediate
+    CPY_ZP = 0xC4,  // Compare Y Register - Zero Page
+    CPY_ABS = 0xCC, // Compare X Register - Absolute
+
+    // Increment and Decrement Registers
+    INC_ZP  = 0xE6,  // Increment - Zero Page
+    INC_ZPX = 0xF6,  // Increment - Zero Page, X
+    INC_ABS = 0xEE,  // Increment - Absolute
+    INC_ABSX = 0xFE, // Increment - Absolute, X
+
+    INX = 0xE8, // Increment X Register
+    INY = 0xC8, // Increment Y Register
+
+    DEC_ZP  = 0xC6,  // Decrement - Zero Page
+    DEC_ZPX = 0xD6,  // Decrement - Zero Page, X
+    DEC_ABS = 0xCE,  // Decrement - Absolute
+    DEC_ABSX = 0xDE, // Decrement - Absolute, X
+
+    DEX = 0xCA, // Decrement X Register
+    DEY = 0x88, // Decrement Y Register
+    
     // Control Flow
     JSR     = 0x20,  // Jump to Subroutine
     RTS     = 0x60,  // Return from Subroutine
@@ -147,6 +192,7 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "ADC_INDX";
             case Opcode::ADC_INDY:
                 return "ADC_INDY";
+
             // AND
             case Opcode::AND_IM:
                 return "AND_IM";
@@ -164,6 +210,24 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "AND_INDX";
             case Opcode::AND_INDY:
                 return "AND_INDY";
+
+            // EOR
+            case Opcode::EOR_IM:
+                return "EOR_IM";
+            case Opcode::EOR_ZP:
+                return "EOR_ZP";
+            case Opcode::EOR_ZPX:
+                return "EOR_ZPX";
+            case Opcode::EOR_ABS:
+                return "EOR_ABS";
+            case Opcode::EOR_ABSX:
+                return "EOR_ABSX";
+            case Opcode::EOR_ABSY:
+                return "EOR_ABSY";
+            case Opcode::EOR_INDX:
+                return "EOR_INDX";
+            case Opcode::EOR_INDY:
+                return "EOR_INDY";
 
                 // Arthmetic Shift Left
             case Opcode::ASL_A:
@@ -210,6 +274,62 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "BVC";
             case Opcode::BVS:
                 return "BVS";
+            
+            // Comparision Registers
+            case Opcode::CMP_IM:
+                return "CMP_IM";
+            case Opcode::CMP_ZP:
+                return "CMP_ZP";
+            case Opcode::CMP_ZPX:
+                return "CMP_ZPX";
+            case Opcode::CMP_ABS:
+                return "CMP_ABS";
+            case Opcode::CMP_ABSX:
+                return "CMP_ABSX";
+            case Opcode::CMP_ABSY:
+                return "CMP_ABSY";
+            case Opcode::CMP_INDX:
+                return "CMP_INDX";
+            case Opcode::CMP_INDY:
+                return "CMP_INDY";
+            case Opcode::CPX_IM:
+                return "CPX_IM";
+            case Opcode::CPX_ZP:
+                return "CPX_ZP";
+            case Opcode::CPX_ABS:
+                return "CPX_ABS";
+            case Opcode::CPY_IM:
+                return "CPY_IM";
+            case Opcode::CPY_ZP:
+                return "CPY_ZP";
+            case Opcode::CPY_ABS:
+                return "CPY_ABS";
+
+            // Incremenet and Decrement Registers
+            case Opcode::INC_ZP:
+                return "INC_ZP";
+            case Opcode::INC_ZPX:
+                return "INC_ZPX";
+            case Opcode::INC_ABS:
+                return "INC_ABS";
+            case Opcode::INC_ABSX:
+                return "INC_ABSX";
+            case Opcode::INX:
+                return "INX";
+            case Opcode::INY:
+                return "INY";
+            case Opcode::DEC_ZP:
+                return "DECZ_ZP";
+            case Opcode::DEC_ZPX:
+                return "DEC_ZPX";
+            case Opcode::DEC_ABS:
+                return "DEC_ABS";
+            case Opcode::DEC_ABSX:
+                return "DEC_ABSX";
+            case Opcode::DEX:
+                return "DEX";
+            case Opcode::DEY:
+                return "DEY";
 
             // Control FLow
             case Opcode::JSR:

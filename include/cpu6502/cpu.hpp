@@ -92,6 +92,8 @@ class CPU
     constexpr void arthmetic_shift_left(u8& value) noexcept;
     constexpr void exclusive_or(u8 value) noexcept;
     constexpr void compare_accumulator(u8 value) noexcept;
+    constexpr void compare_x_register(u8 value) noexcept;
+    constexpr void compare_y_register(u8 value) noexcept;
 
     [[nodiscard]] constexpr auto clear_carry_flag(i32& cycles) noexcept
         -> std::expected<void, EmulatorError>;
@@ -333,6 +335,28 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_cmp_indirect_y(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // Compare X Register
+
+    [[nodiscard]] constexpr auto execute_cpx_immediate(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cpx_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cpx_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    // Compare Y Register
+
+    [[nodiscard]] constexpr auto execute_cpy_immediate(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cpy_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cpy_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -510,6 +534,24 @@ inline constexpr void CPU::compare_accumulator(u8 value) noexcept
     u8 result = static_cast<u8>(a_ - value);
 
     flags_.carry    = (a_ >= value);
+    flags_.zero     = (result == 0);
+    flags_.negative = (result & 0x80) != 0;
+}
+
+inline constexpr void CPU::compare_x_register(u8 value) noexcept
+{
+    u8 result = static_cast<u8>(x_ - value);
+
+    flags_.carry    = (x_ >= value);
+    flags_.zero     = (result == 0);
+    flags_.negative = (result & 0x80) != 0;
+}
+
+inline constexpr void CPU::compare_y_register(u8 value) noexcept
+{
+    u8 result = static_cast<u8>(y_ - value);
+
+    flags_.carry    = (y_ >= value);
     flags_.zero     = (result == 0);
     flags_.negative = (result & 0x80) != 0;
 }
@@ -1902,6 +1944,98 @@ inline constexpr auto CPU::execute_cmp_indirect_y(i32& cycles, Memory& memory)
         }
 
     compare_accumulator(value.value());
+    return {};
+}
+
+// CPX - Compare X Register
+// Immediate
+
+inline constexpr auto CPU::execute_cpx_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_x_register(value.value());
+    return {};
+}
+
+// CPX Zero Page
+inline constexpr auto CPU::execute_cpx_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_x_register(value.value());
+    return {};
+}
+
+// CPX Absolute
+inline constexpr auto CPU::execute_cpx_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_x_register(value.value());
+    return {};
+}
+
+// CPY - Compare Y Register
+// Immediate
+
+inline constexpr auto CPU::execute_cpy_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_y_register(value.value());
+    return {};
+}
+
+// CPY Zero Page
+inline constexpr auto CPU::execute_cpy_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_y_register(value.value());
+    return {};
+}
+
+// CPY Absolute
+inline constexpr auto CPU::execute_cpy_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_y_register(value.value());
     return {};
 }
 

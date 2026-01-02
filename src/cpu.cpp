@@ -265,6 +265,28 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
             case Opcode::CMP_INDY:
                 return execute_cmp_indirect_y(cycles, memory);
 
+                // CPX - Compare X Register
+
+            case Opcode::CPX_IM:
+                return execute_cpx_immediate(cycles, memory);
+
+            case Opcode::CPX_ZP:
+                return execute_cpx_zero_page(cycles, memory);
+
+            case Opcode::CPX_ABS:
+                return execute_cpx_absolute(cycles, memory);
+
+                // CPY - Compare Y Register
+
+            case Opcode::CPY_IM:
+                return execute_cpy_immediate(cycles, memory);
+
+            case Opcode::CPY_ZP:
+                return execute_cpy_zero_page(cycles, memory);
+
+            case Opcode::CPY_ABS:
+                return execute_cpy_absolute(cycles, memory);
+
                 // Control Flow Instructions
 
             case Opcode::JSR:

@@ -91,6 +91,7 @@ class CPU
     constexpr void logical_and(u8 value) noexcept;
     constexpr void arthmetic_shift_left(u8& value) noexcept;
     constexpr void exclusive_or(u8 value) noexcept;
+    constexpr void compare_accumulator(u8 value) noexcept;
 
     [[nodiscard]] constexpr auto clear_carry_flag(i32& cycles) noexcept
         -> std::expected<void, EmulatorError>;
@@ -305,6 +306,33 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_bvs(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // Comparision Instuctions
+    // COMPARE (Accumulator)
+
+    [[nodiscard]] constexpr auto execute_cmp_immediate(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_zero_page_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_absolute_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_absolute_y(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_indirect_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_cmp_indirect_y(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -475,6 +503,15 @@ inline constexpr void CPU::exclusive_or(u8 value) noexcept
 {
     a_ ^= value;
     set_zn_flags(a_);
+}
+
+inline constexpr void CPU::compare_accumulator(u8 value) noexcept
+{
+    u8 result = static_cast<u8>(a_ - value);
+
+    flags_.carry    = (a_ >= value);
+    flags_.zero     = (result == 0);
+    flags_.negative = (result & 0x80) != 0;
 }
 
 // Instruction implementations
@@ -1702,6 +1739,169 @@ inline constexpr auto CPU::execute_eor_indirect_y(i32& cycles, Memory& memory)
         }
 
     exclusive_or(value.value());
+    return {};
+}
+
+// CMP - Compare
+// Immediate
+
+inline constexpr auto CPU::execute_cmp_immediate(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto value = fetch_byte(cycles, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Zero Page
+inline constexpr auto CPU::execute_cmp_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Zero Page, X
+inline constexpr auto CPU::execute_cmp_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    u8 final_address = address.value() + x_;
+    cycles--;  // Extra cycle for index addition
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Absolute
+inline constexpr auto CPU::execute_cmp_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Absolute, X
+inline constexpr auto CPU::execute_cmp_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    u16 final_address = address.value() + x_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+        {
+            cycles--;  // Extra cycle for page boundary crossing
+        }
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Absolute, Y
+inline constexpr auto CPU::execute_cmp_absolute_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    u16 final_address = address.value() + y_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    if (page_crossed(address.value(), final_address))
+        {
+            cycles--;  // Extra cycle for page boundary crossing
+        }
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Indirect, X
+inline constexpr auto CPU::execute_cmp_indirect_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr)
+        return std::unexpected(zero_page_addr.error());
+
+    u8 indexed_addr = zero_page_addr.value() + x_;
+    cycles--;  // Extra cycle for index addition
+
+    auto effective_addr = memory.read_word(indexed_addr);
+    if (!effective_addr)
+        return std::unexpected(effective_addr.error());
+    cycles -= 2;  // Two cycles to read word from zero page
+
+    auto value = read_byte(cycles, effective_addr.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    compare_accumulator(value.value());
+    return {};
+}
+
+// CMP Indirect, Y
+inline constexpr auto CPU::execute_cmp_indirect_y(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr)
+        return std::unexpected(zero_page_addr.error());
+
+    auto base_addr = memory.read_word(zero_page_addr.value());
+    if (!base_addr)
+        return std::unexpected(base_addr.error());
+    cycles -= 2;  // Two cycles to read word from zero page
+
+    u16 final_address = base_addr.value() + y_;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    if (page_crossed(base_addr.value(), final_address))
+        {
+            cycles--;  // Extra cycle for page boundary crossing
+        }
+
+    compare_accumulator(value.value());
     return {};
 }
 

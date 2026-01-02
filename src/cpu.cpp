@@ -237,6 +237,34 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
             case Opcode::BVS:
                 return execute_bvs(cycles, memory);
+
+                // Comparision Instructions
+                // CMP - Compare
+
+            case Opcode::CMP_IM:
+                return execute_cmp_immediate(cycles, memory);
+
+            case Opcode::CMP_ZP:
+                return execute_cmp_zero_page(cycles, memory);
+
+            case Opcode::CMP_ZPX:
+                return execute_cmp_zero_page_x(cycles, memory);
+
+            case Opcode::CMP_ABS:
+                return execute_cmp_absolute(cycles, memory);
+
+            case Opcode::CMP_ABSX:
+                return execute_cmp_absolute_x(cycles, memory);
+
+            case Opcode::CMP_ABSY:
+                return execute_cmp_absolute_y(cycles, memory);
+
+            case Opcode::CMP_INDX:
+                return execute_cmp_indirect_x(cycles, memory);
+
+            case Opcode::CMP_INDY:
+                return execute_cmp_indirect_y(cycles, memory);
+
                 // Control Flow Instructions
 
             case Opcode::JSR:

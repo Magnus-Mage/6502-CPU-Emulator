@@ -147,6 +147,32 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
             case Opcode::AND_INDY:
                 return execute_and_indirect_y(cycles, memory);
 
+                // Exclusive OR
+
+            case Opcode::EOR_IM:
+                return execute_eor_immediate(cycles, memory);
+
+            case Opcode::EOR_ZP:
+                return execute_eor_zero_page(cycles, memory);
+
+            case Opcode::EOR_ZPX:
+                return execute_eor_zero_page_x(cycles, memory);
+
+            case Opcode::EOR_ABS:
+                return execute_eor_absolute(cycles, memory);
+
+            case Opcode::EOR_ABSX:
+                return execute_eor_absolute_x(cycles, memory);
+
+            case Opcode::EOR_ABSY:
+                return execute_eor_absolute_y(cycles, memory);
+
+            case Opcode::EOR_INDX:
+                return execute_eor_indirect_x(cycles, memory);
+
+            case Opcode::EOR_INDY:
+                return execute_eor_indirect_y(cycles, memory);
+
                 // ASL - Arithmetic Shift Left
 
             case Opcode::ASL_A:

@@ -11,7 +11,7 @@
 
 ## Instructions added from 6502:
 ```
-ADC, AND, LDA, LDX, LDY, JSR, RTS, ASL, CLC, CLD, CLI, CLV
+ADC, AND, EOR, LDA, LDX, LDY, JSR, RTS, ASL, CLC, CLD, CLI, CLV, BCC, BCS, BEQ, BIT, BMI, BNE, BPL, BRK, BVC, BVS, CMP, CPX, CPY, INC, INX, INY, DEC, DEX, DEY
 ```
 
 ---

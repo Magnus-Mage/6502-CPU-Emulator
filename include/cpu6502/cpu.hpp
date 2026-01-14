@@ -94,6 +94,8 @@ class CPU
     constexpr void compare_accumulator(u8 value) noexcept;
     constexpr void compare_x_register(u8 value) noexcept;
     constexpr void compare_y_register(u8 value) noexcept;
+    constexpr void inc_memory(u8& value) noexcept;
+    constexpr void dec_memory(u8& value) noexcept;
 
     [[nodiscard]] constexpr auto clear_carry_flag(i32& cycles) noexcept
         -> std::expected<void, EmulatorError>;
@@ -105,6 +107,18 @@ class CPU
         -> std::expected<void, EmulatorError>;
 
     [[nodiscard]] constexpr auto clear_overflow_flag(i32& cycles) noexcept
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto inc_x_register(i32& cycles) noexcept
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto inc_y_register(i32& cycles) noexcept
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto dec_x_register(i32& cycles) noexcept
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto dec_y_register(i32& cycles) noexcept
         -> std::expected<void, EmulatorError>;
 
     // Helper for page boundary detection
@@ -357,6 +371,31 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_cpy_absolute(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // Increment and Decrement memory
+    [[nodiscard]] constexpr auto execute_inc_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_inc_zero_page_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_inc_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_inc_absolute_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_dec_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_dec_zero_page_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_dec_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_dec_absolute_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -554,6 +593,58 @@ inline constexpr void CPU::compare_y_register(u8 value) noexcept
     flags_.carry    = (y_ >= value);
     flags_.zero     = (result == 0);
     flags_.negative = (result & 0x80) != 0;
+}
+
+inline constexpr void CPU::inc_memory(u8& value) noexcept
+{
+    value = value + 1;
+    set_zn_flags(value);
+}
+
+inline constexpr void CPU::dec_memory(u8& value) noexcept
+{
+    value = value - 1;
+    set_zn_flags(value);
+}
+
+inline constexpr auto CPU::inc_x_register(i32& cycles) noexcept
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    x_ = x_ + 1;
+    set_zn_flags(x_);
+
+    return {};
+}
+
+inline constexpr auto CPU::inc_y_register(i32& cycles) noexcept
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    y_ = y_ + 1;
+    set_zn_flags(y_);
+
+    return {};
+}
+
+inline constexpr auto CPU::dec_x_register(i32& cycles) noexcept
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    x_ = x_ - 1;
+    set_zn_flags(x_);
+
+    return {};
+}
+
+inline constexpr auto CPU::dec_y_register(i32& cycles) noexcept
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    y_ = y_ - 1;
+    set_zn_flags(y_);
+
+    return {};
 }
 
 // Instruction implementations
@@ -2036,6 +2127,210 @@ inline constexpr auto CPU::execute_cpy_absolute(i32& cycles, Memory& memory)
         return std::unexpected(value.error());
 
     compare_y_register(value.value());
+    return {};
+}
+
+// Increment and Decrement
+inline constexpr auto CPU::execute_inc_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    inc_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_inc_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr)
+        return std::unexpected(zero_page_addr.error());
+
+    u8 final_addr = zero_page_addr.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_addr, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    inc_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(final_addr, temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_inc_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    inc_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_inc_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    u16 final_address = address.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    inc_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(final_address, temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+    return {};
+}
+
+// Decrement
+inline constexpr auto CPU::execute_dec_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    dec_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_dec_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr)
+        return std::unexpected(zero_page_addr.error());
+
+    u8 final_addr = zero_page_addr.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_addr, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    dec_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(final_addr, temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_dec_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    dec_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(address.value(), temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_dec_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    u16 final_address = address.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    dec_memory(temp);
+
+    cycles--;
+
+    auto write_result = memory.write_byte(final_address, temp);
+    if (!write_result)
+        return write_result;
+    cycles--;
     return {};
 }
 

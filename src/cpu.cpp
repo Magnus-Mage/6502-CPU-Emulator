@@ -287,6 +287,50 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
             case Opcode::CPY_ABS:
                 return execute_cpy_absolute(cycles, memory);
 
+            // Add these cases in the switch(opcode) block in fetch_and_execute():
+
+            // INC - Increment Memory
+            case Opcode::INC_ZP:
+                return execute_inc_zero_page(cycles, memory);
+
+            case Opcode::INC_ZPX:
+                return execute_inc_zero_page_x(cycles, memory);
+
+            case Opcode::INC_ABS:
+                return execute_inc_absolute(cycles, memory);
+
+            case Opcode::INC_ABSX:
+                return execute_inc_absolute_x(cycles, memory);
+
+            // DEC - Decrement Memory
+            case Opcode::DEC_ZP:
+                return execute_dec_zero_page(cycles, memory);
+
+            case Opcode::DEC_ZPX:
+                return execute_dec_zero_page_x(cycles, memory);
+
+            case Opcode::DEC_ABS:
+                return execute_dec_absolute(cycles, memory);
+
+            case Opcode::DEC_ABSX:
+                return execute_dec_absolute_x(cycles, memory);
+
+            // INX - Increment X Register
+            case Opcode::INX:
+                return inc_x_register(cycles);
+
+            // INY - Increment Y Register
+            case Opcode::INY:
+                return inc_y_register(cycles);
+
+            // DEX - Decrement X Register
+            case Opcode::DEX:
+                return dec_x_register(cycles);
+
+            // DEY - Decrement Y Register
+            case Opcode::DEY:
+                return dec_y_register(cycles);
+
                 // Control Flow Instructions
 
             case Opcode::JSR:

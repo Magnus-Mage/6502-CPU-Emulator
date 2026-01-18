@@ -252,6 +252,17 @@ target_link_libraries(test_control_flow
         GTest::gtest_main
 )
 
+# Test for JMP instructions
+add_executable(test_jmp
+        tests/test_jmp.cpp
+)
+
+target_link_libraries(test_jmp
+        PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
 apply_strict_warnings(test_control_flow)
 
 # ============================================================================
@@ -266,6 +277,7 @@ gtest_discover_tests(test_and)
 gtest_discover_tests(test_asl)
 gtest_discover_tests(test_ldxy)
 gtest_discover_tests(test_control_flow)
+gtest_discover_tests(test_jmp)
 
 # ============================================================================
 # Test target for running all tests
@@ -280,6 +292,7 @@ add_custom_target(run_tests
         test_asl 
         test_ldxy
         test_control_flow
+        test_jmp
     COMMENT "Running all tests..."
 )
 

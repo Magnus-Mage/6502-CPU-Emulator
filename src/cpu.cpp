@@ -338,13 +338,13 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
             case Opcode::RTS:
                 return execute_rts(cycles, memory);
-            /*
+
             case Opcode::JMP_ABS:
                 return execute_jmp_absolute(cycles, memory);
 
             case Opcode::JMP_IND:
                 return execute_jmp_indirect(cycles, memory);
-            */
+
             default:
                 std::println("Unhandled opcode: 0x{:02X}", static_cast<u8>(opcode));
                 return std::unexpected(EmulatorError::InvalidOpcode);

@@ -336,7 +336,10 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "JSR";
             case Opcode::RTS:
                 return "RTS";
-
+            case Opcode::JMP_ABS:
+                return "JMP_ABS";
+            case Opcode::JMP_IND:
+                return "JMP_IND";
             default:
                 return "UNKNOWN";
         }

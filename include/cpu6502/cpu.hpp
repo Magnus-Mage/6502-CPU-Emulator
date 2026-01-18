@@ -160,6 +160,13 @@ class CPU
     [[nodiscard]] constexpr auto execute_rts(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
 
+    // JMP Instructions
+    [[nodiscard]] constexpr auto execute_jmp_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_jmp_indirect(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
     // Load X Register
 
     [[nodiscard]] constexpr auto execute_ldx_immediate(i32& cycles, Memory& memory)
@@ -2331,6 +2338,48 @@ inline constexpr auto CPU::execute_dec_absolute_x(i32& cycles, Memory& memory)
     if (!write_result)
         return write_result;
     cycles--;
+    return {};
+}
+
+// JMP - JMP Absolute Instruction
+inline constexpr auto CPU::execute_jmp_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address) return std::unexpected(address.error());
+
+    pc_ = address.value();
+
+    return {};
+}
+
+// JMP - JMP Indirect Instruction
+constexpr auto CPU::execute_jmp_indirect(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto pointer_addr = fetch_word(cycles, memory);
+    if (!pointer_addr) return std::unexpected(pointer_addr.error());
+
+    u16 low_addr = pointer_addr.value();
+    u16 high_addr = (pointer_addr.value() & 0xFF00) | ((pointer_addr.value() + 1) & 0x00FF);
+
+    auto low_byte = memory.read_byte(low_addr);
+    if (!low_byte)
+        return std::unexpected(low_byte.error());
+    cycles--;
+
+    auto high_byte = memory.read_byte(high_addr);
+    if (!high_byte)
+        return std::unexpected(high_byte.error());
+    cycles--;
+
+    // Construct the target address
+    u16 target_address = static_cast<u16>(low_byte.value()) |
+                         (static_cast<u16>(high_byte.value()) << 8);
+
+    // Set PC to the target address
+    pc_ = target_address;
+
     return {};
 }
 

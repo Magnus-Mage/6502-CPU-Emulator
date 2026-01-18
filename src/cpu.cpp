@@ -331,7 +331,23 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
             case Opcode::DEY:
                 return dec_y_register(cycles);
 
-                // Control Flow Instructions
+            // LSR - Logical Shift Right
+            case Opcode::LSR_A:
+                return execute_shift_right_accumulator(cycles);
+
+            case Opcode::LSR_ZP:
+                return execute_shift_right_zero_page(cycles, memory);
+
+            case Opcode::LSR_ZPX:
+                return execute_shift_right_zero_page_x(cycles, memory);
+
+            case Opcode::LSR_ABS:
+                return execute_shift_right_absolute(cycles, memory);
+
+            case Opcode::LSR_ABSX:
+                return execute_shift_right_absolute_x(cycles, memory);
+
+            // Control Flow Instructions
 
             case Opcode::JSR:
                 return execute_jsr(cycles, memory);
@@ -344,6 +360,7 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
 
             case Opcode::JMP_IND:
                 return execute_jmp_indirect(cycles, memory);
+
 
             default:
                 std::println("Unhandled opcode: 0x{:02X}", static_cast<u8>(opcode));

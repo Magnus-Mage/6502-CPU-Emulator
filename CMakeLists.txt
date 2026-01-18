@@ -252,6 +252,8 @@ target_link_libraries(test_control_flow
         GTest::gtest_main
 )
 
+apply_strict_warnings(test_control_flow)
+
 # Test for JMP instructions
 add_executable(test_jmp
         tests/test_jmp.cpp
@@ -263,7 +265,19 @@ target_link_libraries(test_jmp
         GTest::gtest_main
 )
 
-apply_strict_warnings(test_control_flow)
+apply_strict_warnings(test_jmp)
+
+add_executable(test_lsr
+        tests/test_lsr.cpp
+)
+
+target_link_libraries(test_lsr
+        PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+apply_strict_warnings(test_lsr)
 
 # ============================================================================
 # Register Tests with CTest
@@ -278,7 +292,7 @@ gtest_discover_tests(test_asl)
 gtest_discover_tests(test_ldxy)
 gtest_discover_tests(test_control_flow)
 gtest_discover_tests(test_jmp)
-
+gtest_discover_tests(test_lsr)
 # ============================================================================
 # Test target for running all tests
 # ============================================================================
@@ -293,6 +307,7 @@ add_custom_target(run_tests
         test_ldxy
         test_control_flow
         test_jmp
+        test_lsr
     COMMENT "Running all tests..."
 )
 
@@ -304,6 +319,8 @@ message(STATUS "  - test_and")
 message(STATUS "  - test_asl")
 message(STATUS "  - test_ldxy")
 message(STATUS "  - test_control_flow")
+message(STATUS "  - test_jmp")
+message(STATUS "  - test_lsr")
 message(STATUS "Run with: make test or make run_tests")
 message(STATUS "==============================================")
 

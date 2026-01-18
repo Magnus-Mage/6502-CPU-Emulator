@@ -96,6 +96,7 @@ class CPU
     constexpr void compare_y_register(u8 value) noexcept;
     constexpr void inc_memory(u8& value) noexcept;
     constexpr void dec_memory(u8& value) noexcept;
+    constexpr void logical_shift_right(u8& value) noexcept;
 
     [[nodiscard]] constexpr auto clear_carry_flag(i32& cycles) noexcept
         -> std::expected<void, EmulatorError>;
@@ -403,6 +404,23 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_dec_absolute_x(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // Logical Shift Right
+
+    [[nodiscard]] constexpr auto execute_shift_right_accumulator(i32& cycles)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_shift_right_zero_page(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_shift_right_zero_page_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_shift_right_absolute(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_shift_right_absolute_x(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -652,6 +670,17 @@ inline constexpr auto CPU::dec_y_register(i32& cycles) noexcept
     set_zn_flags(y_);
 
     return {};
+}
+
+inline constexpr void CPU::logical_shift_right(u8& value) noexcept
+{
+    flags_.carry = (value & 0x01) != 0;
+
+    // Shift Right
+    value >>= 1;
+
+    flags_.zero = (value == 0);
+    flags_.negative = false;
 }
 
 // Instruction implementations
@@ -2380,6 +2409,112 @@ constexpr auto CPU::execute_jmp_indirect(i32& cycles, Memory& memory)
     // Set PC to the target address
     pc_ = target_address;
 
+    return {};
+}
+
+// Logical Shift Right
+inline constexpr auto CPU::execute_shift_right_accumulator(i32& cycles)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    logical_shift_right(a_);  // Pass Accumulator by reference
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_right_zero_page(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_byte(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    logical_shift_right(temp);
+
+    cycles--;
+
+    if (auto write_result = memory.write_byte(address.value(), temp); !write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_right_zero_page_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto zero_page_addr = fetch_byte(cycles, memory);
+    if (!zero_page_addr)
+        return std::unexpected(zero_page_addr.error());
+
+    const u8 final_addr = zero_page_addr.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_addr, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    logical_shift_right(temp);
+
+    cycles--;
+
+    if (auto write_result = memory.write_byte(final_addr, temp); !write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_right_absolute(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    auto value = read_byte(cycles, address.value(), memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    logical_shift_right(temp);
+
+    cycles--;
+
+    if (auto write_result = memory.write_byte(address.value(), temp); !write_result)
+        return write_result;
+    cycles--;
+
+    return {};
+}
+
+inline constexpr auto CPU::execute_shift_right_absolute_x(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    auto address = fetch_word(cycles, memory);
+    if (!address)
+        return std::unexpected(address.error());
+
+    const u16 final_address = address.value() + x_;
+    cycles--;
+
+    auto value = read_byte(cycles, final_address, memory);
+    if (!value)
+        return std::unexpected(value.error());
+
+    u8 temp = value.value();
+    logical_shift_right(temp);
+
+    cycles--;
+
+    if (auto write_result = memory.write_byte(final_address, temp); !write_result)
+        return write_result;
+    cycles--;
     return {};
 }
 

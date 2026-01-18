@@ -125,7 +125,14 @@ enum class Opcode : u8
 
     DEX = 0xCA, // Decrement X Register
     DEY = 0x88, // Decrement Y Register
-    
+
+    // LSR - Logical Shift Right
+    LSR_A    = 0x4A,  // Logical Shift Right - Accumulator
+    LSR_ZP   = 0x46,  // Logical Shift Right - Zero Page
+    LSR_ZPX  = 0x56,  // Logical Shift Right - Zero Page, X
+    LSR_ABS  = 0x4E,  // Logical Shift Right - Absolute
+    LSR_ABSX = 0x5E,  // Logical Shift Right - Absolute, X
+
     // Control Flow
     JSR     = 0x20,  // Jump to Subroutine
     RTS     = 0x60,  // Return from Subroutine
@@ -330,6 +337,18 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "DEX";
             case Opcode::DEY:
                 return "DEY";
+
+            // Logical Shift Right
+            case Opcode::LSR_A:
+                return "LSR_A";
+            case Opcode::LSR_ZP:
+                return "LSR_ZP";
+            case Opcode::LSR_ZPX:
+                return "LSR_ZPX";
+            case Opcode::LSR_ABS:
+                return "LSR_ABS";
+            case Opcode::LSR_ABSX:
+                return "LSR_ABSX";
 
             // Control FLow
             case Opcode::JSR:

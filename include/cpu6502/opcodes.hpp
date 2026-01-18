@@ -133,6 +133,15 @@ enum class Opcode : u8
     LSR_ABS  = 0x4E,  // Logical Shift Right - Absolute
     LSR_ABSX = 0x5E,  // Logical Shift Right - Absolute, X
 
+    // NOP - No Operation
+    NOP = 0xEA,  // No Operation
+
+    // Stack Operations
+    PHA = 0x48,  // Push Accumulator
+    PHP = 0x08,  // Push Processor Status
+    PLA = 0x68,  // Pull Accumulator
+    PLP = 0x28,  // Pull Processor Status
+
     // Control Flow
     JSR     = 0x20,  // Jump to Subroutine
     RTS     = 0x60,  // Return from Subroutine
@@ -349,6 +358,20 @@ constexpr const char* opcode_name(Opcode op) noexcept
                 return "LSR_ABS";
             case Opcode::LSR_ABSX:
                 return "LSR_ABSX";
+
+            // No Operation
+            case Opcode::NOP:
+                return "NOP";
+
+            // Stack Operation
+            case Opcode::PHA:
+                return "PHA";
+            case Opcode::PHP:
+                return "PHP";
+            case Opcode::PLA:
+                return "PLA";
+            case Opcode::PLP:
+                return "PLP";
 
             // Control FLow
             case Opcode::JSR:

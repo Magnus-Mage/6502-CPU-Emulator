@@ -267,6 +267,7 @@ target_link_libraries(test_jmp
 
 apply_strict_warnings(test_jmp)
 
+# Test for LSR Instructions
 add_executable(test_lsr
         tests/test_lsr.cpp
 )
@@ -278,6 +279,19 @@ target_link_libraries(test_lsr
 )
 
 apply_strict_warnings(test_lsr)
+
+# Test for Stack Operations (NOP, PHA, PHP, PLA, PLP)
+add_executable(test_stack_ops
+        tests/test_stack_ops.cpp
+)
+
+target_link_libraries(test_stack_ops
+        PRIVATE
+        cpu6502
+        GTest::gtest_main
+)
+
+apply_strict_warnings(test_stack_ops)
 
 # ============================================================================
 # Register Tests with CTest
@@ -293,6 +307,7 @@ gtest_discover_tests(test_ldxy)
 gtest_discover_tests(test_control_flow)
 gtest_discover_tests(test_jmp)
 gtest_discover_tests(test_lsr)
+gtest_discover_tests(test_stack_ops)
 # ============================================================================
 # Test target for running all tests
 # ============================================================================
@@ -308,6 +323,7 @@ add_custom_target(run_tests
         test_control_flow
         test_jmp
         test_lsr
+        test_stack_ops
     COMMENT "Running all tests..."
 )
 
@@ -321,6 +337,7 @@ message(STATUS "  - test_ldxy")
 message(STATUS "  - test_control_flow")
 message(STATUS "  - test_jmp")
 message(STATUS "  - test_lsr")
+message(STATUS "  - test_stack_ops")
 message(STATUS "Run with: make test or make run_tests")
 message(STATUS "==============================================")
 

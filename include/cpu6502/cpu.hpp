@@ -421,6 +421,23 @@ class CPU
 
     [[nodiscard]] constexpr auto execute_shift_right_absolute_x(i32& cycles, Memory& memory)
         -> std::expected<void, EmulatorError>;
+
+    // NOP - No Operation
+    [[nodiscard]] constexpr auto execute_nop(i32& cycles) noexcept
+        -> std::expected<void, EmulatorError>;
+
+    // Stack Operations
+    [[nodiscard]] constexpr auto execute_pha(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_php(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_pla(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
+
+    [[nodiscard]] constexpr auto execute_plp(i32& cycles, Memory& memory)
+        -> std::expected<void, EmulatorError>;
 };
 
 inline constexpr void CPU::reset(Memory& memory) noexcept
@@ -2515,6 +2532,81 @@ inline constexpr auto CPU::execute_shift_right_absolute_x(i32& cycles, Memory& m
     if (auto write_result = memory.write_byte(final_address, temp); !write_result)
         return write_result;
     cycles--;
+    return {};
+}
+
+// No Operation
+inline constexpr auto CPU::execute_nop(i32& cycles) noexcept
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+    return {};
+}
+
+// PHA - pUSH Accumulator
+inline constexpr auto CPU::execute_pha(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+
+    if (auto result = push_byte(cycles, a_, memory); !result) return result;
+
+    return {};
+}
+
+// PHP - Push Processor Stack onto Stack
+inline constexpr auto CPU::execute_php(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;
+
+    // When pushing back, the break flag is set
+    // and the unused bit is always set
+    u8 status = flags_.to_byte();
+    status |= 0x10;
+    status |= 0x20;
+    if (auto result = push_byte(cycles, status, memory); !result) return result;
+
+    return {};
+}
+
+// PLA - Pull Accumulator from Stack
+inline constexpr auto CPU::execute_pla(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;  // Internal operation cycle 1
+    cycles--;  // Internal operation cycle 2 (increment SP)
+
+    auto result = pop_byte(cycles, memory);
+    if (!result)
+        return std::unexpected(result.error());
+
+    a_ = result.value();
+    set_zn_flags(a_);
+
+    return {};
+}
+
+// PLP - Pull Processor Status from Stack
+inline constexpr auto CPU::execute_plp(i32& cycles, Memory& memory)
+    -> std::expected<void, EmulatorError>
+{
+    cycles--;  // Internal operation cycle 1
+    cycles--;  // Internal operation cycle 2 (increment SP)
+
+    auto result = pop_byte(cycles, memory);
+    if (!result)
+        return std::unexpected(result.error());
+
+    // Restore flags from stack
+    // Note: Bit 5 (unused) is always set, and Break flag behavior is special
+    flags_ = flags_.from_byte(result.value());
+
+    // The Break flag is not actually a real flag in the status register
+    // It only exists in the copy pushed to the stack
+    // So we clear it after restoring
+    flags_.brk = false;
+
     return {};
 }
 

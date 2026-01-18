@@ -347,6 +347,24 @@ constexpr auto CPU::fetch_and_execute(i32& cycles, Memory& memory)
             case Opcode::LSR_ABSX:
                 return execute_shift_right_absolute_x(cycles, memory);
 
+
+            // NOP - No Operation
+            case Opcode::NOP:
+                return execute_nop(cycles);
+
+                // Stack Operations
+            case Opcode::PHA:
+                return execute_pha(cycles, memory);
+
+            case Opcode::PHP:
+                return execute_php(cycles, memory);
+
+            case Opcode::PLA:
+                return execute_pla(cycles, memory);
+
+            case Opcode::PLP:
+                return execute_plp(cycles, memory);
+
             // Control Flow Instructions
 
             case Opcode::JSR:
